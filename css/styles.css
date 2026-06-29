@@ -287,9 +287,9 @@ select, input[type="number"] {
 /* Compact stepper editor */
 .predict-form { display: flex; flex-direction: column; gap: 12px; }
 .stat-steppers {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
-  gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 .stepper-row {
   display: flex;
