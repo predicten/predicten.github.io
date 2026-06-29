@@ -68,7 +68,7 @@ function initMobilePanelTabs() {
 
   tabs.forEach((tab) => {
     tab.addEventListener("click", () => {
-      scrollToPanel(Number(tab.dataset.panelIndex));
+      scrollToPanel(Number(tab.dataset.panelIndex), { resetVertical: true });
     });
   });
 
@@ -114,12 +114,19 @@ function initAutoHideHeader() {
   }, { passive: true });
 }
 
-function scrollToPanel(index) {
+function scrollToPanel(index, { resetVertical = false } = {}) {
   const grid = document.querySelector(".grid");
   const panel = document.querySelector(`.grid > .panel[data-panel-index="${index}"]`);
   if (!grid || !panel) return;
   grid.scrollTo({ left: panel.offsetLeft - grid.offsetLeft, behavior: "smooth" });
   setActivePanelTab(index);
+
+  if (resetVertical && window.matchMedia("(max-width: 980px)").matches) {
+    const tabs = document.querySelector(".mobile-panel-tabs");
+    const tabsHeight = tabs ? tabs.getBoundingClientRect().height : 0;
+    const targetTop = window.scrollY + grid.getBoundingClientRect().top - tabsHeight - 10;
+    window.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
+  }
 }
 
 // ---------------------------------------------------------------------------
