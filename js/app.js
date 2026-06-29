@@ -245,17 +245,23 @@ function renderWindows() {
       const mine = state.myPredictions[w.order];
       const leader = status === "settled" ? getWindowLeader(w.order) : null;
       return `
-        <li class="window-row ${editable ? "predictable" : ""}" data-window-order="${w.order}" role="button" tabindex="0" title="Open prediction card">
-          <div class="window-main">
-            <span class="window-label">${escapeHtml(w.label)}</span>
-            <span class="badge badge-${status}">${status}</span>
+        <li class="window-row status-${status} ${editable ? "predictable" : ""}" data-window-order="${w.order}" role="button" tabindex="0" title="Open prediction card">
+          <div class="window-card-content">
+            <div class="window-main">
+              <span>
+                <span class="window-kicker">Fixed window</span>
+                <span class="window-label">${escapeHtml(w.label)}</span>
+              </span>
+              <span class="badge badge-${status}">${status}</span>
+            </div>
+            <div class="window-meta">
+              <span class="meta-pill">${w.predictionsCount || 0} predictions</span>
+              ${mine ? `<span class="meta-pill mine">${mine.scored ? `You earned ${mine.points} pts` : "Your pick is in"}</span>` : ""}
+              ${editable ? `<span class="open-tag" title="Editable" aria-label="Editable">✎</span>` : ""}
+            </div>
+            ${leader ? `<div class="window-leader"><span>Window Leader</span><strong>${escapeHtml(leader.displayName)}</strong><em>${leader.points} pts</em></div>` : ""}
           </div>
-          <div class="window-meta">
-            <span>${w.predictionsCount || 0} preds</span>
-            ${mine ? `<span class="mine">you: ${mine.scored ? mine.points + " pts" : "submitted"}</span>` : ""}
-            ${editable ? `<span class="open-tag" title="Editable" aria-label="Editable">✎</span>` : ""}
-          </div>
-          ${leader ? `<div class="window-leader">Window Leader: <strong>${escapeHtml(leader.displayName)}</strong> · ${leader.points} pts</div>` : ""}
+          <span class="window-chevron" aria-hidden="true">›</span>
         </li>`;
     })
     .join("");
