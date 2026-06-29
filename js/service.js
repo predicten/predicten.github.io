@@ -88,54 +88,6 @@ export async function createMatch({
   return ref.id;
 }
 
-// Import external fixture data into /matches using stable ids. Existing fixture ids
-// are skipped so repeated imports do not duplicate or reset matches/windows.
-export async function importFixtureMatches(fixtures = [], adminUser) {
-  if (!adminUser) throw new Error("Admin sign-in is required to import fixtures.");
-  const created = [];
-  const skipped = [];
-
-  for (const fixture of fixtures) {
-    if (!fixture.id) throw new Error("Fixture is missing a stable id.");
-    const ref = matchRef(fixture.id);
-    const existing = await getDoc(ref);
-    if (existing.exists()) {
-      skipped.push(fixture.id);
-      continue;
-    }
-
-    await setDoc(
-      ref,
-      {
-        name: fixture.name || `${fixture.homeTeam} vs ${fixture.awayTeam}`,
-        homeTeam: fixture.homeTeam,
-        awayTeam: fixture.awayTeam,
-        homeCode: fixture.homeCode || null,
-        awayCode: fixture.awayCode || null,
-        matchDate: fixture.matchDate || null,
-        kickoffLocal: fixture.kickoffLocal || null,
-        stage: fixture.stage || null,
-        group: fixture.group || null,
-        venue: fixture.venue || null,
-        city: fixture.city || null,
-        source: fixture.source || "Imported fixture",
-        sourceUrl: fixture.sourceUrl || null,
-        period: PERIODS.PRE,
-        matchMinute: 0,
-        createdAt: serverTimestamp(),
-        importedAt: serverTimestamp(),
-        importedBy: adminUser.uid,
-      },
-      { merge: true }
-    );
-
-    await createFixedPredictionWindowsForMatch(fixture.id);
-    created.push(fixture.id);
-  }
-
-  return { created, skipped };
-}
-
 // Delete a match and the app-owned subcollections below it.
 export async function deleteMatch(matchId, adminUser) {
   if (!adminUser) throw new Error("Admin sign-in is required to remove matches.");
@@ -370,6 +322,12 @@ export function watchUserPredictions(matchId, uid, callback) {
     query(predictionsCol(matchId), where("userId", "==", uid)),
     (snap) => callback(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
   );
+}
+
+export function watchPredictions(matchId, callback) {
+  return onSnapshot(predictionsCol(matchId), (snap) => {
+    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+  });
 }
 
 export async function getWindowPredictions(matchId, windowId) {

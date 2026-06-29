@@ -5,6 +5,7 @@ import {
   submitPredictionForFixedWindow,
   watchMatch,
   watchMatches,
+  watchPredictions,
   watchStandings,
   watchUserPredictions,
   watchWindows,
@@ -23,8 +24,9 @@ const state = {
   matchId: null,
   match: null,
   windows: [],
+  predictions: [],
   myPredictions: {}, // windowOrder -> prediction
-  unsub: { match: null, windows: null, standings: null, preds: null },
+  unsub: { match: null, windows: null, standings: null, preds: null, allPreds: null },
 };
 
 // ---------------------------------------------------------------------------
@@ -189,6 +191,10 @@ function selectMatch(matchId) {
     renderPredictArea();
   });
   state.unsub.standings = watchStandings(matchId, renderLeaderboard);
+  state.unsub.allPreds = watchPredictions(matchId, (preds) => {
+    state.predictions = preds;
+    renderWindows();
+  });
   state.unsub.preds = watchUserPredictions(matchId, state.user.uid, (preds) => {
     state.myPredictions = {};
     preds.forEach((p) => (state.myPredictions[p.windowOrder] = p));
@@ -199,9 +205,10 @@ function selectMatch(matchId) {
 
 function teardown() {
   Object.values(state.unsub).forEach((fn) => fn && fn());
-  state.unsub = { match: null, windows: null, standings: null, preds: null };
+  state.unsub = { match: null, windows: null, standings: null, preds: null, allPreds: null };
   state.matchId = null;
   state.match = null;
+  state.predictions = [];
 }
 
 // ---------------------------------------------------------------------------
@@ -236,6 +243,7 @@ function renderWindows() {
       const status = getWindowStatus(w, state.match);
       const editable = status !== "settled";
       const mine = state.myPredictions[w.order];
+      const leader = status === "settled" ? getWindowLeader(w.order) : null;
       return `
         <li class="window-row ${editable ? "predictable" : ""}" data-window-order="${w.order}" role="button" tabindex="0" title="Open prediction card">
           <div class="window-main">
@@ -245,8 +253,9 @@ function renderWindows() {
           <div class="window-meta">
             <span>${w.predictionsCount || 0} preds</span>
             ${mine ? `<span class="mine">you: ${mine.scored ? mine.points + " pts" : "submitted"}</span>` : ""}
-            ${editable ? `<span class="open-tag">editable</span>` : ""}
+            ${editable ? `<span class="open-tag" title="Editable" aria-label="Editable">✎</span>` : ""}
           </div>
+          ${leader ? `<div class="window-leader">Window Leader: <strong>${escapeHtml(leader.displayName)}</strong> · ${leader.points} pts</div>` : ""}
         </li>`;
     })
     .join("");
@@ -261,6 +270,14 @@ function renderWindows() {
       }
     });
   });
+}
+
+function getWindowLeader(windowOrder) {
+  const scored = state.predictions
+    .filter((p) => p.windowOrder === windowOrder && p.scored)
+    .sort((a, b) => (b.points || 0) - (a.points || 0));
+  const leader = scored[0];
+  return leader ? { ...leader, displayName: leader.displayName || "Player" } : null;
 }
 
 function openPredictionCard(order) {

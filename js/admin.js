@@ -5,7 +5,6 @@ import {
   createMatch,
   deleteMatch,
   getWindowPredictions,
-  importFixtureMatches,
   recalculateFixedWindowScores,
   submitManualStatsForFixedWindow,
   updateMatchClock,
@@ -136,7 +135,6 @@ function initMatches() {
 
   el("new-match-btn").addEventListener("click", openNewMatchModal);
 
-  el("import-fifa-btn").addEventListener("click", importFifaFixtures);
   el("delete-match-btn").addEventListener("click", openRemoveMatchesModal);
 
   el("clock-save").addEventListener("click", saveClock);
@@ -144,18 +142,6 @@ function initMatches() {
     state.clockDirty = true;
     renderClockSliderLabel(Number(el("clock-slider").value));
   });
-}
-
-async function importFifaFixtures() {
-  try {
-    const res = await fetch("data/fifa-2026-06-28-matches.json", { cache: "no-store" });
-    if (!res.ok) throw new Error(`Could not load FIFA fixture data (${res.status}).`);
-    const fixtures = await res.json();
-    const result = await importFixtureMatches(fixtures, state.user);
-    toast(`Imported ${result.created.length} FIFA fixtures. Skipped ${result.skipped.length} duplicates.`);
-  } catch (e) {
-    toast(err(e));
-  }
 }
 
 function openNewMatchModal() {
