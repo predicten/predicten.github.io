@@ -145,6 +145,38 @@ select, input[type="number"] {
   gap: 8px;
   margin-bottom: 2px;
 }
+.prediction-slider-field {
+  padding: 10px;
+  border-radius: 10px;
+  background: rgba(11, 16, 32, 0.45);
+}
+.prediction-slider-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.prediction-slider-head output {
+  min-width: 34px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: white;
+  text-align: center;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.prediction-slider {
+  width: 100%;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+.slider-scale {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 11px;
+}
 .predict-form, .stats-form, .clock-controls {
   display: grid;
   grid-template-columns: 1fr 1fr;

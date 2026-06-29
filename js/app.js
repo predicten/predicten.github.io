@@ -184,13 +184,20 @@ function renderPredictArea() {
 
   area.innerHTML = `
     <p class="predict-target">
-      Select any unsettled window below and submit or update your prediction.
+      Select any unsettled window, slide each stat from 1–10, then submit or update your prediction.
     </p>
     <div class="prediction-stack">
       ${editableWindows.map(renderPredictionForm).join("")}
     </div>`;
 
   area.querySelectorAll(".predict-form").forEach((form) => {
+    form.querySelectorAll(".prediction-slider").forEach((slider) => {
+      slider.addEventListener("input", () => {
+        const output = form.querySelector(`[data-slider-value="${slider.name}"]`);
+        if (output) output.textContent = slider.value;
+      });
+    });
+
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const order = Number(form.dataset.windowOrder);
@@ -210,11 +217,15 @@ function renderPredictionForm(window) {
   const status = getWindowStatus(window, state.match);
   const existing = state.myPredictions[window.order];
   const fields = STAT_FIELDS.map((f) => {
-    const val = existing ? existing.payload?.[f] ?? 0 : 0;
+    const val = Math.min(10, Math.max(1, Number(existing ? existing.payload?.[f] ?? 1 : 1)));
     return `
-      <label class="field">
-        <span>${STAT_LABELS[f]}</span>
-        <input type="number" min="0" step="1" name="${f}" value="${val}" />
+      <label class="field prediction-slider-field">
+        <span class="prediction-slider-head">
+          <span>${STAT_LABELS[f]}</span>
+          <output data-slider-value="${f}">${val}</output>
+        </span>
+        <input class="prediction-slider" type="range" min="1" max="10" step="1" name="${f}" value="${val}" />
+        <span class="slider-scale"><span>1</span><span>10</span></span>
       </label>`;
   }).join("");
 
