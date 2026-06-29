@@ -110,6 +110,24 @@ export async function importFixtureMatches(fixtures = [], adminUser) {
   return imported;
 }
 
+// Delete a match and the app-owned subcollections below it.
+export async function deleteMatch(matchId, adminUser) {
+  if (!adminUser) throw new Error("Admin sign-in is required to remove matches.");
+  const batch = writeBatch(db);
+  const [windowsSnap, predictionsSnap, standingsSnap] = await Promise.all([
+    getDocs(windowsCol(matchId)),
+    getDocs(predictionsCol(matchId)),
+    getDocs(standingsCol(matchId)),
+  ]);
+
+  windowsSnap.forEach((d) => batch.delete(d.ref));
+  predictionsSnap.forEach((d) => batch.delete(d.ref));
+  standingsSnap.forEach((d) => batch.delete(d.ref));
+  batch.delete(matchRef(matchId));
+
+  await batch.commit();
+}
+
 // Create the 10 fixed match windows for a match. Identical for every player.
 export async function createFixedPredictionWindowsForMatch(matchId) {
   const batch = writeBatch(db);

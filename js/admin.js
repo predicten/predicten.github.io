@@ -3,6 +3,7 @@
 import { isAdmin, loginWithGoogle, logout, watchAuth } from "./auth.js";
 import {
   createMatch,
+  deleteMatch,
   getWindowPredictions,
   importFixtureMatches,
   recalculateFixedWindowScores,
@@ -145,6 +146,7 @@ function initMatches() {
   });
 
   el("import-fifa-btn").addEventListener("click", importFifaFixtures);
+  el("delete-match-btn").addEventListener("click", removeSelectedMatch);
 
   el("clock-save").addEventListener("click", saveClock);
   el("clock-slider").addEventListener("input", () => {
@@ -160,6 +162,29 @@ async function importFifaFixtures() {
     const fixtures = await res.json();
     const ids = await importFixtureMatches(fixtures, state.user);
     toast(`Imported ${ids.length} FIFA fixtures.`);
+  } catch (e) {
+    toast(err(e));
+  }
+}
+
+async function removeSelectedMatch() {
+  if (!state.matchId || !state.match) {
+    toast("Select a match to remove.");
+    return;
+  }
+
+  const ok = confirm(
+    `Remove "${state.match.name}"?\n\nThis deletes the match, fixed windows, predictions, and leaderboard data for that match.`
+  );
+  if (!ok) return;
+
+  try {
+    await deleteMatch(state.matchId, state.user);
+    state.matchId = null;
+    state.match = null;
+    state.windows = [];
+    el("windows-tbody").innerHTML = "";
+    toast("Match removed.");
   } catch (e) {
     toast(err(e));
   }

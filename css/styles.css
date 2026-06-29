@@ -70,6 +70,8 @@ code { background: var(--panel-2); padding: 2px 6px; border-radius: 6px; }
 .btn-primary { background: var(--primary); border-color: var(--primary); color: white; }
 .btn-primary:hover { background: var(--primary-600); }
 .btn-ghost { background: transparent; }
+.btn-danger { background: rgba(255, 93, 108, 0.12); border-color: rgba(255, 93, 108, 0.45); color: #ff9aa4; }
+.btn-danger:hover { border-color: var(--red); color: white; }
 .btn-small { padding: 6px 10px; font-size: 13px; margin: 2px; }
 .btn-google { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; }
 .btn-google .g {
