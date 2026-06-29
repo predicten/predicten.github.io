@@ -336,6 +336,18 @@ select, input[type="number"] {
 .new-match-form .field:first-child,
 .new-match-form .field:nth-child(2),
 .new-match-form .field:nth-child(3) { grid-column: 1 / -1; }
+.remove-match-list { display: flex; flex-direction: column; gap: 8px; margin: 14px 0; max-height: 50vh; overflow-y: auto; }
+.remove-match-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: start;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-2);
+}
+.remove-match-row small { display: block; margin-top: 3px; color: var(--muted); }
 .actual-line { margin: 0 0 14px; color: var(--muted); }
 .warn { color: var(--red); }
 

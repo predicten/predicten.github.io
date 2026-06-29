@@ -26,6 +26,7 @@ const state = {
   user: null,
   matchId: null,
   match: null,
+  matches: [],
   windows: [],
   unsub: { match: null, windows: null },
   clockDirty: false,
@@ -114,11 +115,13 @@ function initAutoHideHeader() {
 function initMatches() {
   const select = el("match-select");
   watchMatches((matches) => {
+    state.matches = matches;
     select.innerHTML = matches
       .map((m) => `<option value="${m.id}">${esc(m.name)}</option>`)
       .join("");
     if (!matches.length) {
       state.matchId = null;
+      state.matches = [];
       el("windows-tbody").innerHTML = "";
       return;
     }
@@ -134,7 +137,7 @@ function initMatches() {
   el("new-match-btn").addEventListener("click", openNewMatchModal);
 
   el("import-fifa-btn").addEventListener("click", importFifaFixtures);
-  el("delete-match-btn").addEventListener("click", removeSelectedMatch);
+  el("delete-match-btn").addEventListener("click", openRemoveMatchesModal);
 
   el("clock-save").addEventListener("click", saveClock);
   el("clock-slider").addEventListener("input", () => {
@@ -237,6 +240,61 @@ async function removeSelectedMatch() {
   } catch (e) {
     toast(err(e));
   }
+}
+
+function openRemoveMatchesModal() {
+  if (!state.matches.length) {
+    toast("No matches to remove.");
+    return;
+  }
+
+  el("modal-title").textContent = "Remove matches";
+  el("modal-body").innerHTML = `
+    <p class="muted">Select one or more matches to remove. This deletes fixed windows, predictions, and leaderboard data for each selected match.</p>
+    <form id="remove-matches-form" class="remove-matches-form">
+      <div class="remove-match-list">
+        ${state.matches.map((match) => `
+          <label class="remove-match-row">
+            <input type="checkbox" name="matchId" value="${esc(match.id)}" ${match.id === state.matchId ? "checked" : ""} />
+            <span>
+              <strong>${esc(match.name || `${match.homeTeam || "Home"} vs ${match.awayTeam || "Away"}`)}</strong>
+              <small>${esc([match.matchDate, match.kickoffLocal, match.stage].filter(Boolean).join(" · "))}</small>
+            </span>
+          </label>
+        `).join("")}
+      </div>
+      <div class="modal-actions">
+        <button type="submit" class="btn btn-danger">Remove selected</button>
+      </div>
+    </form>`;
+  openModal();
+
+  el("remove-matches-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const selected = Array.from(e.target.querySelectorAll('input[name="matchId"]:checked')).map((input) => input.value);
+    if (!selected.length) {
+      toast("Select at least one match.");
+      return;
+    }
+    const ok = confirm(`Remove ${selected.length} match${selected.length === 1 ? "" : "es"}?\n\nThis cannot be undone.`);
+    if (!ok) return;
+
+    try {
+      for (const matchId of selected) {
+        await deleteMatch(matchId, state.user);
+      }
+      if (selected.includes(state.matchId)) {
+        state.matchId = null;
+        state.match = null;
+        state.windows = [];
+        el("windows-tbody").innerHTML = "";
+      }
+      closeModal();
+      toast(`Removed ${selected.length} match${selected.length === 1 ? "" : "es"}.`);
+    } catch (e2) {
+      toast(err(e2));
+    }
+  });
 }
 
 function selectMatch(matchId) {
