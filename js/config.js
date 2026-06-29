@@ -14,4 +14,5 @@ export const firebaseConfig = {
 // firestore.rules for real security — see firestore.rules.)
 export const ADMIN_EMAILS = [
   "jue.george@gmail.com",
+  "binoybt@gmail.com",
 ];
