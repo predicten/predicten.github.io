@@ -1,4 +1,4 @@
-// Player-facing app: sign in, pick a match, predict the next fixed window,
+// Player-facing app: sign in, pick a match, update predictions for unsettled windows,
 // watch the leaderboard update in realtime.
 import { isAdmin, loginWithGoogle, logout, watchAuth } from "./auth.js";
 import {
@@ -13,7 +13,6 @@ import {
   PERIODS,
   STAT_FIELDS,
   STAT_LABELS,
-  getNextFixedPredictionWindow,
   getWindowStatus,
 } from "./windows.js";
 
@@ -146,14 +145,13 @@ function renderWindows() {
     list.innerHTML = "";
     return;
   }
-  const next = getNextFixedPredictionWindow(state.match.matchMinute, state.match.period);
   list.innerHTML = state.windows
     .map((w) => {
       const status = getWindowStatus(w, state.match);
-      const predictable = next && next.order === w.order;
+      const editable = status !== "settled";
       const mine = state.myPredictions[w.order];
       return `
-        <li class="window-row ${predictable ? "predictable" : ""}">
+        <li class="window-row ${editable ? "predictable" : ""}">
           <div class="window-main">
             <span class="window-label">${escapeHtml(w.label)}</span>
             <span class="badge badge-${status}">${status}</span>
@@ -161,7 +159,7 @@ function renderWindows() {
           <div class="window-meta">
             <span>${w.predictionsCount || 0} preds</span>
             ${mine ? `<span class="mine">you: ${mine.scored ? mine.points + " pts" : "submitted"}</span>` : ""}
-            ${predictable ? `<span class="open-tag">open</span>` : ""}
+            ${editable ? `<span class="open-tag">editable</span>` : ""}
           </div>
         </li>`;
     })
@@ -174,12 +172,43 @@ function renderPredictArea() {
     area.innerHTML = "";
     return;
   }
-  const next = getNextFixedPredictionWindow(state.match.matchMinute, state.match.period);
-  if (!next) {
-    area.innerHTML = `<p class="muted">No window is open for predictions right now.</p>`;
+  if (!state.windows.length) {
+    area.innerHTML = `<p class="muted">Loading fixed windows…</p>`;
     return;
   }
-  const existing = state.myPredictions[next.order];
+  const editableWindows = state.windows.filter((w) => getWindowStatus(w, state.match) !== "settled");
+  if (!editableWindows.length) {
+    area.innerHTML = `<p class="muted">All fixed windows are settled for this match.</p>`;
+    return;
+  }
+
+  area.innerHTML = `
+    <p class="predict-target">
+      Select any unsettled window below and submit or update your prediction.
+    </p>
+    <div class="prediction-stack">
+      ${editableWindows.map(renderPredictionForm).join("")}
+    </div>`;
+
+  area.querySelectorAll(".predict-form").forEach((form) => {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const order = Number(form.dataset.windowOrder);
+      const window = state.windows.find((w) => w.order === order);
+      const data = Object.fromEntries(new FormData(form).entries());
+      try {
+        await submitPredictionForFixedWindow(state.user, state.matchId, order, data);
+        toast(`Prediction saved for ${window.label}.`);
+      } catch (err) {
+        toast(friendlyError(err));
+      }
+    });
+  });
+}
+
+function renderPredictionForm(window) {
+  const status = getWindowStatus(window, state.match);
+  const existing = state.myPredictions[window.order];
   const fields = STAT_FIELDS.map((f) => {
     const val = existing ? existing.payload?.[f] ?? 0 : 0;
     return `
@@ -189,28 +218,18 @@ function renderPredictArea() {
       </label>`;
   }).join("");
 
-  area.innerHTML = `
-    <p class="predict-target">
-      Next open window: <strong>${escapeHtml(next.label)}</strong>
-      ${existing ? `<span class="muted">— you can update until it starts</span>` : ""}
-    </p>
-    <form id="predict-form" class="predict-form">
+  return `
+    <form class="predict-form prediction-card" data-window-order="${window.order}">
+      <div class="prediction-card-head">
+        <strong>${escapeHtml(window.label)}</strong>
+        <span class="badge badge-${status}">${status}</span>
+        ${existing ? `<span class="muted">submitted</span>` : ""}
+      </div>
       ${fields}
       <button type="submit" class="btn btn-primary">
         ${existing ? "Update prediction" : "Submit prediction"}
       </button>
     </form>`;
-
-  el("predict-form").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const data = Object.fromEntries(new FormData(e.target).entries());
-    try {
-      await submitPredictionForFixedWindow(state.user, state.matchId, next.order, data);
-      toast(`Prediction saved for ${next.label}.`);
-    } catch (err) {
-      toast(friendlyError(err));
-    }
-  });
 }
 
 function renderLeaderboard(standings) {

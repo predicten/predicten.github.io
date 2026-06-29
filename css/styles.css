@@ -131,12 +131,35 @@ select, input[type="number"] {
 
 /* Predict form */
 .predict-target { margin: 0 0 14px; }
+.prediction-stack { display: flex; flex-direction: column; gap: 14px; }
+.prediction-card {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel-2);
+}
+.prediction-card-head {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
 .predict-form, .stats-form, .clock-controls {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
-.clock-controls { grid-template-columns: 1fr 1fr auto; align-items: end; }
+.clock-controls { grid-template-columns: 1fr auto; align-items: end; }
+.clock-slider-field input[type="range"] { width: 100%; accent-color: var(--primary); }
+.clock-slider-field output {
+  align-self: flex-start;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--panel-2);
+  color: var(--text);
+  font-weight: 700;
+}
 .field { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--muted); }
 .field input, .field select { width: 100%; }
 .predict-form .btn, .stats-form .btn { grid-column: 1 / -1; }

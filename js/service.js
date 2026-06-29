@@ -27,7 +27,6 @@ import {
   FIXED_WINDOW_SCHEDULE,
   PERIODS,
   STAT_FIELDS,
-  getNextFixedPredictionWindow,
   getWindowStatus,
   scorePrediction,
 } from "./windows.js";
@@ -149,21 +148,21 @@ export function updateMatchClock(matchId, { period, matchMinute }) {
 // Predictions
 // ---------------------------------------------------------------------------
 
-// Submit a prediction for the next fixed window that has not started yet.
+// Submit or update a prediction for any fixed window that has not been settled.
 export async function submitPredictionForFixedWindow(user, matchId, windowId, predictionPayload) {
   if (!user) throw new Error("You must be signed in to predict.");
   const match = await getMatch(matchId);
   if (!match) throw new Error("Match not found.");
+  const order = Number(windowId);
+  const windowSnap = await getDoc(windowRef(matchId, order));
+  if (!windowSnap.exists()) throw new Error("Window not found.");
 
-  const next = getNextFixedPredictionWindow(match.matchMinute, match.period);
-  if (!next) throw new Error("No window is open for predictions right now.");
-  if (Number(windowId) !== next.order) {
-    throw new Error(
-      `You can only predict the next fixed window (${next.label}).`
-    );
+  const window = windowSnap.data();
+  if (getWindowStatus(window, match) === "settled") {
+    throw new Error(`Predictions are locked because ${window.label} is settled.`);
   }
 
-  const ref = predictionRef(matchId, user.uid, next.order);
+  const ref = predictionRef(matchId, user.uid, order);
   const existing = await getDoc(ref);
   const payload = cleanStats(predictionPayload);
 
@@ -172,8 +171,8 @@ export async function submitPredictionForFixedWindow(user, matchId, windowId, pr
     {
       userId: user.uid,
       displayName: user.displayName || user.email || "Player",
-      windowOrder: next.order,
-      windowLabel: next.label,
+      windowOrder: order,
+      windowLabel: window.label,
       payload,
       points: existing.exists() ? existing.data().points ?? 0 : 0,
       scored: existing.exists() ? existing.data().scored ?? false : false,
@@ -184,7 +183,7 @@ export async function submitPredictionForFixedWindow(user, matchId, windowId, pr
   );
 
   if (!existing.exists()) {
-    await updateDoc(windowRef(matchId, next.order), { predictionsCount: increment(1) });
+    await updateDoc(windowRef(matchId, order), { predictionsCount: increment(1) });
   }
   return ref.id;
 }

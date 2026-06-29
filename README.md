@@ -2,7 +2,7 @@
 
 A live football prediction game built with **vanilla JavaScript + HTML + CSS + Firebase**
 (Firestore + Google Auth). Players sign in with Google, join a live match, and predict
-what happens in the next **fixed 10-minute match window**. An admin enters the actual
+what happens in any unsettled **fixed 10-minute match window**. An admin enters the actual
 stats after each window completes; scoring and the leaderboard update in realtime.
 
 > The game uses **fixed match-time windows that are identical for every player** — it does
@@ -23,8 +23,9 @@ stats after each window completes; scoring and the leaderboard update in realtim
 | 8 | 75:00–85:00 | |
 | 9 | 85:00–FT | includes second-half stoppage time |
 
-**Prediction rule:** a user can only predict the *next fixed window that has not started yet*.
-For example, at minute 33 the active window is 30:00–40:00, so the user can only predict 40:00–HT.
+**Prediction rule:** a user can submit or update a prediction for any fixed window that
+has not been settled yet. Once the admin enters stats and scoring is calculated, that
+window becomes `settled` and player predictions for it are locked.
 
 **Window statuses:** `upcoming` → `active` → `completed` → `settled`.
 
@@ -84,8 +85,10 @@ Then open `http://localhost:8000/` (player) and `http://localhost:8000/admin.htm
 ## Using it
 
 1. In the **admin console**, click **+ New match** (creates the 10 fixed windows).
-2. Use **Match clock** to set the period + minute (no live feed in the MVP).
-3. Players sign in on the **player page**, pick the match, and predict the next open window.
+2. Use the **Match clock** slider to move the match to the latest fixed checkpoint
+   (no live feed in the MVP).
+3. Players sign in on the **player page**, pick the match, and submit or update predictions
+   for any unsettled window.
 4. When a window is `completed`, the admin clicks **Enter stats**, fills in
    goals / shots on goal / corners / fouls / cards, and submits. The app saves the
    stats, scores every prediction for that exact window, updates totals, refreshes the
@@ -110,7 +113,7 @@ Per stat, an exact hit and a "within one" guess earn points (configurable in
 
 - ✅ The app creates fixed match windows for every match.
 - ✅ All players see the same fixed windows.
-- ✅ A user can only predict the next fixed window that has not started.
+- ✅ A user can submit or update predictions for any unsettled fixed window.
 - ✅ Admin can enter actual stats only after a fixed window is completed (override available).
 - ✅ Admin-entered stats score all predictions for that exact fixed window.
 - ✅ Leaderboard updates after each fixed window is settled.

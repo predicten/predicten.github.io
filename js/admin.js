@@ -30,6 +30,22 @@ const state = {
   clockDirty: false,
 };
 
+const CLOCK_STATES = [
+  { label: "Pre-match", period: PERIODS.PRE, matchMinute: 0 },
+  { label: "0:00", period: PERIODS.FIRST_HALF, matchMinute: 0 },
+  { label: "10:00", period: PERIODS.FIRST_HALF, matchMinute: 10 },
+  { label: "20:00", period: PERIODS.FIRST_HALF, matchMinute: 20 },
+  { label: "30:00", period: PERIODS.FIRST_HALF, matchMinute: 30 },
+  { label: "40:00", period: PERIODS.FIRST_HALF, matchMinute: 40 },
+  { label: "HT", period: PERIODS.HALFTIME, matchMinute: 45 },
+  { label: "45:00", period: PERIODS.SECOND_HALF, matchMinute: 45 },
+  { label: "55:00", period: PERIODS.SECOND_HALF, matchMinute: 55 },
+  { label: "65:00", period: PERIODS.SECOND_HALF, matchMinute: 65 },
+  { label: "75:00", period: PERIODS.SECOND_HALF, matchMinute: 75 },
+  { label: "85:00", period: PERIODS.SECOND_HALF, matchMinute: 85 },
+  { label: "FT", period: PERIODS.FULLTIME, matchMinute: 90 },
+];
+
 // ---------------------------------------------------------------------------
 // Auth
 // ---------------------------------------------------------------------------
@@ -101,8 +117,10 @@ function initMatches() {
   el("import-fifa-btn").addEventListener("click", importFifaFixtures);
 
   el("clock-save").addEventListener("click", saveClock);
-  el("period-select").addEventListener("change", () => (state.clockDirty = true));
-  el("minute-input").addEventListener("input", () => (state.clockDirty = true));
+  el("clock-slider").addEventListener("input", () => {
+    state.clockDirty = true;
+    renderClockSliderLabel(Number(el("clock-slider").value));
+  });
 }
 
 async function importFifaFixtures() {
@@ -140,23 +158,56 @@ function renderClock() {
   if (!state.match) return;
   // Don't stomp on edits the admin is mid-way through making.
   if (!state.clockDirty) {
-    el("period-select").value = state.match.period;
-    el("minute-input").value = state.match.matchMinute ?? 0;
+    const sliderIndex = clockStateIndexForMatch(state.match);
+    el("clock-slider").value = sliderIndex;
+    renderClockSliderLabel(sliderIndex);
   }
   el("match-clock").textContent = `${state.match.period} ${state.match.matchMinute ?? 0}'`;
 }
 
 async function saveClock() {
   try {
+    const clock = CLOCK_STATES[Number(el("clock-slider").value)] || CLOCK_STATES[0];
     await updateMatchClock(state.matchId, {
-      period: el("period-select").value,
-      matchMinute: Number(el("minute-input").value),
+      period: clock.period,
+      matchMinute: clock.matchMinute,
     });
     state.clockDirty = false;
     toast("Clock updated.");
   } catch (e) {
     toast(err(e));
   }
+}
+
+function renderClockSliderLabel(index) {
+  const clock = CLOCK_STATES[index] || CLOCK_STATES[0];
+  el("clock-slider-label").textContent = clock.label;
+}
+
+function clockStateIndexForMatch(match) {
+  if (!match) return 0;
+  if (match.period === PERIODS.PRE) return 0;
+  if (match.period === PERIODS.HALFTIME) return 6;
+  if (match.period === PERIODS.FULLTIME) return 12;
+
+  const minute = Number(match.matchMinute) || 0;
+  if (match.period === PERIODS.FIRST_HALF) {
+    if (minute < 10) return 1;
+    if (minute < 20) return 2;
+    if (minute < 30) return 3;
+    if (minute < 40) return 4;
+    return 5;
+  }
+
+  if (match.period === PERIODS.SECOND_HALF) {
+    if (minute < 55) return 7;
+    if (minute < 65) return 8;
+    if (minute < 75) return 9;
+    if (minute < 85) return 10;
+    return 11;
+  }
+
+  return 0;
 }
 
 // ---------------------------------------------------------------------------
