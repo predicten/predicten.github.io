@@ -111,7 +111,6 @@ select, input[type="number"] {
   font-variant-numeric: tabular-nums;
 }
 .empty { margin: 30px 0; color: var(--muted); }
-.mobile-swipe-hint { display: none; }
 .mobile-panel-tabs { display: none; }
 
 .grid {
@@ -121,13 +120,6 @@ select, input[type="number"] {
   margin-top: 18px;
 }
 @media (max-width: 980px) {
-  .mobile-swipe-hint {
-    display: block;
-    margin: 14px 0 0;
-    color: var(--muted);
-    font-size: 13px;
-  }
-
   .mobile-panel-tabs {
     position: sticky;
     top: 53px;
@@ -197,6 +189,10 @@ select, input[type="number"] {
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--panel-2);
+}
+.prediction-card.focus-flash {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(79, 124, 255, 0.45), var(--shadow);
 }
 .prediction-card.settled {
   opacity: 0.72;
@@ -278,7 +274,10 @@ select, input[type="number"] {
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--panel-2);
+  cursor: pointer;
 }
+.window-row:hover { border-color: var(--primary); }
+.window-row:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .window-row.predictable { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary) inset; }
 .window-main { display: flex; align-items: center; gap: 10px; }
 .window-label { font-weight: 600; }

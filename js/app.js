@@ -67,11 +67,7 @@ function initMobilePanelTabs() {
 
   tabs.forEach((tab) => {
     tab.addEventListener("click", () => {
-      const index = Number(tab.dataset.panelIndex);
-      const panel = panels[index];
-      if (!panel) return;
-      grid.scrollTo({ left: panel.offsetLeft - grid.offsetLeft, behavior: "smooth" });
-      setActivePanelTab(index);
+      scrollToPanel(Number(tab.dataset.panelIndex));
     });
   });
 
@@ -86,6 +82,14 @@ function setActivePanelTab(index) {
   document.querySelectorAll(".mobile-panel-tab").forEach((tab) => {
     tab.classList.toggle("active", Number(tab.dataset.panelIndex) === index);
   });
+}
+
+function scrollToPanel(index) {
+  const grid = document.querySelector(".grid");
+  const panel = document.querySelector(`.grid > .panel[data-panel-index="${index}"]`);
+  if (!grid || !panel) return;
+  grid.scrollTo({ left: panel.offsetLeft - grid.offsetLeft, behavior: "smooth" });
+  setActivePanelTab(index);
 }
 
 // ---------------------------------------------------------------------------
@@ -181,7 +185,7 @@ function renderWindows() {
       const editable = status !== "settled";
       const mine = state.myPredictions[w.order];
       return `
-        <li class="window-row ${editable ? "predictable" : ""}">
+        <li class="window-row ${editable ? "predictable" : ""}" data-window-order="${w.order}" role="button" tabindex="0" title="Open prediction card">
           <div class="window-main">
             <span class="window-label">${escapeHtml(w.label)}</span>
             <span class="badge badge-${status}">${status}</span>
@@ -194,6 +198,28 @@ function renderWindows() {
         </li>`;
     })
     .join("");
+
+  list.querySelectorAll(".window-row").forEach((row) => {
+    const open = () => openPredictionCard(Number(row.dataset.windowOrder));
+    row.addEventListener("click", open);
+    row.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        open();
+      }
+    });
+  });
+}
+
+function openPredictionCard(order) {
+  scrollToPanel(0);
+  const card = document.querySelector(`.prediction-card[data-window-order="${order}"]`);
+  if (!card) return;
+  setTimeout(() => {
+    card.scrollIntoView({ behavior: "smooth", block: "center" });
+    card.classList.add("focus-flash");
+    setTimeout(() => card.classList.remove("focus-flash"), 1400);
+  }, 250);
 }
 
 function renderPredictArea() {
