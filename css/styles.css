@@ -112,6 +112,7 @@ select, input[type="number"] {
 }
 .empty { margin: 30px 0; color: var(--muted); }
 .mobile-swipe-hint { display: none; }
+.mobile-panel-tabs { display: none; }
 
 .grid {
   display: grid;
@@ -125,6 +126,37 @@ select, input[type="number"] {
     margin: 14px 0 0;
     color: var(--muted);
     font-size: 13px;
+  }
+
+  .mobile-panel-tabs {
+    position: sticky;
+    top: 53px;
+    z-index: 8;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    margin: 10px 0 0;
+    padding: 6px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: rgba(11, 16, 32, 0.88);
+    backdrop-filter: blur(8px);
+  }
+
+  .mobile-panel-tab {
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--muted);
+    padding: 8px 6px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .mobile-panel-tab.active {
+    background: var(--primary);
+    color: white;
   }
 
   .grid {
@@ -166,6 +198,10 @@ select, input[type="number"] {
   border-radius: 12px;
   background: var(--panel-2);
 }
+.prediction-card.settled {
+  opacity: 0.72;
+  border-color: rgba(46, 204, 113, 0.35);
+}
 .prediction-card-head {
   grid-column: 1 / -1;
   display: flex;
@@ -198,6 +234,16 @@ select, input[type="number"] {
   width: 100%;
   accent-color: var(--primary);
   cursor: pointer;
+}
+.prediction-slider:disabled {
+  cursor: not-allowed;
+  opacity: 0.75;
+}
+.prediction-card.settled .btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.8;
+  background: transparent;
+  color: var(--muted);
 }
 .slider-scale {
   display: flex;

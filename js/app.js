@@ -38,6 +38,7 @@ el("login-btn").addEventListener("click", async () => {
   }
 });
 el("logout-btn").addEventListener("click", () => logout());
+initMobilePanelTabs();
 
 watchAuth((user) => {
   state.user = user;
@@ -57,6 +58,35 @@ watchAuth((user) => {
     el("user-chip").classList.add("hidden");
   }
 });
+
+function initMobilePanelTabs() {
+  const grid = document.querySelector(".grid");
+  const tabs = Array.from(document.querySelectorAll(".mobile-panel-tab"));
+  const panels = Array.from(document.querySelectorAll(".grid > .panel"));
+  if (!grid || !tabs.length || !panels.length) return;
+
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const index = Number(tab.dataset.panelIndex);
+      const panel = panels[index];
+      if (!panel) return;
+      grid.scrollTo({ left: panel.offsetLeft - grid.offsetLeft, behavior: "smooth" });
+      setActivePanelTab(index);
+    });
+  });
+
+  grid.addEventListener("scroll", () => {
+    if (!window.matchMedia("(max-width: 980px)").matches) return;
+    const index = Math.round(grid.scrollLeft / Math.max(1, grid.clientWidth));
+    setActivePanelTab(Math.min(tabs.length - 1, Math.max(0, index)));
+  }, { passive: true });
+}
+
+function setActivePanelTab(index) {
+  document.querySelectorAll(".mobile-panel-tab").forEach((tab) => {
+    tab.classList.toggle("active", Number(tab.dataset.panelIndex) === index);
+  });
+}
 
 // ---------------------------------------------------------------------------
 // Match selection
@@ -176,21 +206,17 @@ function renderPredictArea() {
     area.innerHTML = `<p class="muted">Loading fixed windows…</p>`;
     return;
   }
-  const editableWindows = state.windows.filter((w) => getWindowStatus(w, state.match) !== "settled");
-  if (!editableWindows.length) {
-    area.innerHTML = `<p class="muted">All fixed windows are settled for this match.</p>`;
-    return;
-  }
-
   area.innerHTML = `
     <p class="predict-target">
-      Select any unsettled window, slide each stat from 1–10, then submit or update your prediction.
+      Settle your predictions. Slide each stat from 1–10 and submit or update any unsettled window.
     </p>
     <div class="prediction-stack">
-      ${editableWindows.map(renderPredictionForm).join("")}
+      ${state.windows.map(renderPredictionForm).join("")}
     </div>`;
 
   area.querySelectorAll(".predict-form").forEach((form) => {
+    if (form.dataset.settled === "true") return;
+
     form.querySelectorAll(".prediction-slider").forEach((slider) => {
       slider.addEventListener("input", () => {
         const output = form.querySelector(`[data-slider-value="${slider.name}"]`);
@@ -215,6 +241,7 @@ function renderPredictArea() {
 
 function renderPredictionForm(window) {
   const status = getWindowStatus(window, state.match);
+  const settled = status === "settled";
   const existing = state.myPredictions[window.order];
   const fields = STAT_FIELDS.map((f) => {
     const val = Math.min(10, Math.max(1, Number(existing ? existing.payload?.[f] ?? 1 : 1)));
@@ -224,20 +251,20 @@ function renderPredictionForm(window) {
           <span>${STAT_LABELS[f]}</span>
           <output data-slider-value="${f}">${val}</output>
         </span>
-        <input class="prediction-slider" type="range" min="1" max="10" step="1" name="${f}" value="${val}" />
+        <input class="prediction-slider" type="range" min="1" max="10" step="1" name="${f}" value="${val}" ${settled ? "disabled" : ""} />
         <span class="slider-scale"><span>1</span><span>10</span></span>
       </label>`;
   }).join("");
 
   return `
-    <form class="predict-form prediction-card" data-window-order="${window.order}">
+    <form class="predict-form prediction-card ${settled ? "settled" : ""}" data-window-order="${window.order}" data-settled="${settled}">
       <div class="prediction-card-head">
         <strong>${escapeHtml(window.label)}</strong>
         <span class="badge badge-${status}">${status}</span>
-        ${existing ? `<span class="muted">submitted</span>` : ""}
+        ${existing ? `<span class="muted">${settled && existing.scored ? `${existing.points || 0} pts` : "submitted"}</span>` : ""}
       </div>
       ${fields}
-      <button type="submit" class="btn btn-primary">
+      <button type="submit" class="btn btn-primary" ${settled ? "disabled" : ""}>
         ${existing ? "Update prediction" : "Submit prediction"}
       </button>
     </form>`;

@@ -46,20 +46,26 @@
         <a class="link" href="admin.html">admin console</a>.
       </div>
 
-      <p class="mobile-swipe-hint">Swipe left for fixed match windows, then leaderboard. Swipe right to go back.</p>
+      <p class="mobile-swipe-hint">Swipe left for Match Windows, then leaderboard. Swipe right to go back.</p>
+
+      <nav class="mobile-panel-tabs" aria-label="Match sections">
+        <button type="button" class="mobile-panel-tab active" data-panel-index="0">Your predictions</button>
+        <button type="button" class="mobile-panel-tab" data-panel-index="1">Match Windows</button>
+        <button type="button" class="mobile-panel-tab" data-panel-index="2">Leaderboard</button>
+      </nav>
 
       <div class="grid">
-        <section class="panel">
+        <section class="panel" data-panel-index="0">
           <h2>Your predictions</h2>
           <div id="predict-area"></div>
         </section>
 
-        <section class="panel">
-          <h2>Fixed match windows</h2>
+        <section class="panel" data-panel-index="1">
+          <h2>Match Windows</h2>
           <ul id="window-list" class="window-list"></ul>
         </section>
 
-        <section class="panel">
+        <section class="panel" data-panel-index="2">
           <h2>Leaderboard</h2>
           <ol id="leaderboard" class="leaderboard"></ol>
         </section>
