@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Console — Match Predictor</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-dot admin"></span>
+        Admin Console
+      </div>
+      <nav class="topbar-actions">
+        <a class="link" href="index.html">Player view</a>
+        <span id="user-chip" class="user-chip hidden"></span>
+        <button id="logout-btn" class="btn btn-ghost hidden">Sign out</button>
+      </nav>
+    </header>
+
+    <section id="login-view" class="login-view hidden">
+      <div class="login-card">
+        <h1>Admin sign in</h1>
+        <p class="muted">Sign in with an authorized Google account to manage matches.</p>
+        <button id="login-btn" class="btn btn-google"><span class="g">G</span> Sign in with Google</button>
+      </div>
+    </section>
+
+    <section id="denied-view" class="login-view hidden">
+      <div class="login-card">
+        <h1>Not authorized</h1>
+        <p class="muted">
+          This account is not an admin. Add your email to <code>ADMIN_EMAILS</code>
+          in <code>js/config.js</code>.
+        </p>
+        <button id="denied-logout" class="btn btn-ghost">Sign out</button>
+      </div>
+    </section>
+
+    <main id="admin-view" class="app-view hidden">
+      <div class="admin-toolbar">
+        <div class="match-picker">
+          <label for="match-select">Match</label>
+          <select id="match-select"></select>
+          <span id="match-clock" class="clock"></span>
+        </div>
+        <button id="new-match-btn" class="btn btn-ghost">+ New match</button>
+      </div>
+
+      <section class="panel">
+        <h2>Match clock</h2>
+        <p class="muted">No live feed in the MVP — set the period and minute here. Window statuses derive from this.</p>
+        <div class="clock-controls">
+          <label class="field">
+            <span>Period</span>
+            <select id="period-select">
+              <option value="PRE">Pre-match</option>
+              <option value="FIRST_HALF">1st half</option>
+              <option value="HALFTIME">Half-time</option>
+              <option value="SECOND_HALF">2nd half</option>
+              <option value="FULLTIME">Full-time</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Match minute</span>
+            <input type="number" id="minute-input" min="0" step="1" value="0" />
+          </label>
+          <button id="clock-save" class="btn btn-primary">Update clock</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Fixed windows</h2>
+        <div class="table-wrap">
+          <table class="windows-table">
+            <thead>
+              <tr>
+                <th>Window</th>
+                <th>Status</th>
+                <th>Predictions</th>
+                <th>Stats?</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="windows-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <!-- Stat entry / results modal -->
+    <div id="modal" class="modal hidden">
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3 id="modal-title">Enter stats</h3>
+          <button id="modal-close" class="btn btn-ghost">✕</button>
+        </div>
+        <div id="modal-body"></div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <script type="module" src="js/admin.js"></script>
+  </body>
+</html>

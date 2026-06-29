@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Match Predictor — Fixed Window Game</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-dot"></span>
+        Match Predictor
+      </div>
+      <nav class="topbar-actions">
+        <a class="link" href="admin.html">Admin</a>
+        <span id="user-chip" class="user-chip hidden"></span>
+        <button id="logout-btn" class="btn btn-ghost hidden">Sign out</button>
+      </nav>
+    </header>
+
+    <!-- Signed out -->
+    <section id="login-view" class="login-view hidden">
+      <div class="login-card">
+        <h1>Predict the next 10 minutes</h1>
+        <p class="muted">
+          Join a live football match and predict what happens in the next
+          <strong>fixed match window</strong>. Same windows for every player.
+        </p>
+        <button id="login-btn" class="btn btn-google">
+          <span class="g">G</span> Sign in with Google
+        </button>
+      </div>
+    </section>
+
+    <!-- Signed in -->
+    <main id="app-view" class="app-view hidden">
+      <div class="match-picker">
+        <label for="match-select">Match</label>
+        <select id="match-select"></select>
+        <span id="match-clock" class="clock"></span>
+      </div>
+
+      <div id="no-matches" class="empty hidden">
+        No matches yet. Ask an admin to create one in the
+        <a class="link" href="admin.html">admin console</a>.
+      </div>
+
+      <div class="grid">
+        <section class="panel">
+          <h2>Your prediction</h2>
+          <div id="predict-area"></div>
+        </section>
+
+        <section class="panel">
+          <h2>Fixed match windows</h2>
+          <ul id="window-list" class="window-list"></ul>
+        </section>
+
+        <section class="panel">
+          <h2>Leaderboard</h2>
+          <ol id="leaderboard" class="leaderboard"></ol>
+        </section>
+      </div>
+    </main>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>

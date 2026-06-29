@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Must match js/config.js ADMIN_EMAILS.
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email in [
+          'jue.george@gmail.com'
+        ];
+    }
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // User profiles: a user can only write their own.
+    match /users/{uid} {
+      allow read: if signedIn();
+      allow write: if signedIn() && request.auth.uid == uid;
+    }
+
+    match /matches/{matchId} {
+      allow read: if signedIn();
+      allow create, update, delete: if isAdmin();
+
+      // Fixed windows are created/settled by admins only.
+      match /windows/{windowId} {
+        allow read: if signedIn();
+        allow write: if isAdmin();
+      }
+
+      // A player may create/update only their own prediction docs (id = uid_order).
+      // Players may never set their own points/scored (admin scoring writes those).
+      match /predictions/{predId} {
+        allow read: if signedIn();
+        allow create, update: if signedIn()
+          && request.resource.data.userId == request.auth.uid
+          && predId == (request.auth.uid + '_' + string(request.resource.data.windowOrder));
+        // Scoring writes (points/scored/breakdown) happen via admin.
+        allow update: if isAdmin();
+        allow delete: if isAdmin();
+      }
+
+      // Standings are written by scoring (admin) only.
+      match /standings/{uid} {
+        allow read: if signedIn();
+        allow write: if isAdmin();
+      }
+    }
+  }
+}
