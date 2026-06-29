@@ -55,7 +55,21 @@
 
       <div class="grid">
         <section class="panel" data-panel-index="0">
-          <h2>Your predictions</h2>
+          <h2 class="panel-title">
+            Your predictions
+            <span class="score-tooltip">
+              <button class="tooltip-trigger" type="button" aria-label="Show scoring guide" aria-describedby="prediction-score-tooltip">?</button>
+              <span id="prediction-score-tooltip" class="tooltip-card" role="tooltip">
+                <strong>Scoring guide</strong>
+                <small>Close means off by one.</small>
+                <span><b>Goals</b><em>Exact 10 · Close 4</em></span>
+                <span><b>Shots on goal</b><em>Exact 6 · Close 2</em></span>
+                <span><b>Corners</b><em>Exact 6 · Close 2</em></span>
+                <span><b>Fouls</b><em>Exact 4 · Close 1</em></span>
+                <span><b>Cards</b><em>Exact 5 · Close 2</em></span>
+              </span>
+            </span>
+          </h2>
           <div id="predict-area"></div>
         </section>
 

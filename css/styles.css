@@ -193,6 +193,71 @@ select, input[type="number"] {
   box-shadow: var(--shadow);
 }
 .panel h2 { margin: 0 0 14px; font-size: 17px; }
+.panel-title { display: flex; align-items: center; gap: 8px; }
+.score-tooltip { position: relative; display: inline-flex; }
+.tooltip-trigger {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid rgba(79, 124, 255, 0.45);
+  border-radius: 999px;
+  background: rgba(79, 124, 255, 0.14);
+  color: #b8c8ff;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: help;
+}
+.tooltip-trigger:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.tooltip-card {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 10px);
+  z-index: 20;
+  display: grid;
+  gap: 8px;
+  width: min(280px, calc(100vw - 44px));
+  padding: 12px;
+  border: 1px solid rgba(79, 124, 255, 0.34);
+  border-radius: 14px;
+  background: rgba(13, 19, 36, 0.98);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.38);
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.25;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -4px);
+  transition: opacity 0.14s ease, transform 0.14s ease;
+}
+.tooltip-card::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -6px;
+  width: 10px;
+  height: 10px;
+  border-left: 1px solid rgba(79, 124, 255, 0.34);
+  border-top: 1px solid rgba(79, 124, 255, 0.34);
+  background: rgba(13, 19, 36, 0.98);
+  transform: translateX(-50%) rotate(45deg);
+}
+.tooltip-card strong { font-size: 13px; }
+.tooltip-card small { color: var(--muted); font-size: 11px; }
+.tooltip-card span {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  color: var(--muted);
+}
+.tooltip-card b { color: var(--text); font-weight: 700; }
+.tooltip-card em { color: #b8c8ff; font-style: normal; white-space: nowrap; }
+.score-tooltip:hover .tooltip-card,
+.score-tooltip:focus-within .tooltip-card {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, 0);
+}
 
 /* Predict form */
 .predict-target { margin: 0 0 14px; }
