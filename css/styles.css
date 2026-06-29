@@ -49,6 +49,7 @@ code { background: var(--panel-2); padding: 2px 6px; border-radius: 6px; }
 }
 .topbar.topbar-hidden { transform: translateY(-100%); }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: 0.2px; }
+.brand-short { display: none; }
 .brand-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 14px var(--primary); }
 .brand-dot.admin { background: var(--amber); box-shadow: 0 0 14px var(--amber); }
 .topbar-actions { display: flex; align-items: center; gap: 14px; }
@@ -124,6 +125,9 @@ select, input[type="number"] {
   margin-top: 18px;
 }
 @media (max-width: 980px) {
+  .brand-full { display: none; }
+  .brand-short { display: inline; }
+
   .mobile-panel-tabs {
     position: sticky;
     top: 53px;
