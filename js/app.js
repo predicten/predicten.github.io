@@ -249,7 +249,6 @@ function renderWindows() {
           <div class="window-card-content">
             <div class="window-main">
               <span>
-                <span class="window-kicker">Fixed window</span>
                 <span class="window-label">${escapeHtml(w.label)}</span>
               </span>
               <span class="badge badge-${status}">${status}</span>

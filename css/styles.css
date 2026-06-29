@@ -414,15 +414,6 @@ select, input[type="number"] {
   justify-content: space-between;
   gap: 12px;
 }
-.window-kicker {
-  display: block;
-  margin-bottom: 3px;
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
 .window-label {
   display: block;
   color: var(--text);
