@@ -131,19 +131,7 @@ function initMatches() {
 
   select.addEventListener("change", (e) => selectMatch(e.target.value));
 
-  el("new-match-btn").addEventListener("click", async () => {
-    const home = prompt("Home team?", "Home FC");
-    if (home === null) return;
-    const away = prompt("Away team?", "Away FC");
-    if (away === null) return;
-    try {
-      const id = await createMatch({ homeTeam: home, awayTeam: away }, state.user);
-      state.matchId = id;
-      toast("Match created with 10 fixed windows.");
-    } catch (e) {
-      toast(err(e));
-    }
-  });
+  el("new-match-btn").addEventListener("click", openNewMatchModal);
 
   el("import-fifa-btn").addEventListener("click", importFifaFixtures);
   el("delete-match-btn").addEventListener("click", removeSelectedMatch);
@@ -160,11 +148,72 @@ async function importFifaFixtures() {
     const res = await fetch("data/fifa-2026-06-28-matches.json", { cache: "no-store" });
     if (!res.ok) throw new Error(`Could not load FIFA fixture data (${res.status}).`);
     const fixtures = await res.json();
-    const ids = await importFixtureMatches(fixtures, state.user);
-    toast(`Imported ${ids.length} FIFA fixtures.`);
+    const result = await importFixtureMatches(fixtures, state.user);
+    toast(`Imported ${result.created.length} FIFA fixtures. Skipped ${result.skipped.length} duplicates.`);
   } catch (e) {
     toast(err(e));
   }
+}
+
+function openNewMatchModal() {
+  el("modal-title").textContent = "New match";
+  el("modal-body").innerHTML = `
+    <form id="new-match-form" class="new-match-form">
+      <label class="field">
+        <span>Home team</span>
+        <input name="homeTeam" type="text" placeholder="Home FC" required />
+      </label>
+      <label class="field">
+        <span>Away team</span>
+        <input name="awayTeam" type="text" placeholder="Away FC" required />
+      </label>
+      <label class="field">
+        <span>Match name</span>
+        <input name="name" type="text" placeholder="Optional, defaults to Home vs Away" />
+      </label>
+      <label class="field">
+        <span>Match date</span>
+        <input name="matchDate" type="date" />
+      </label>
+      <label class="field">
+        <span>Kickoff time</span>
+        <input name="kickoffLocal" type="time" />
+      </label>
+      <label class="field">
+        <span>Stage</span>
+        <input name="stage" type="text" placeholder="Group stage, Round of 16, Final..." />
+      </label>
+      <label class="field">
+        <span>Group</span>
+        <input name="group" type="text" placeholder="Group A" />
+      </label>
+      <label class="field">
+        <span>Venue</span>
+        <input name="venue" type="text" placeholder="Stadium name" />
+      </label>
+      <label class="field">
+        <span>City</span>
+        <input name="city" type="text" placeholder="City" />
+      </label>
+      <div class="modal-actions">
+        <button type="submit" class="btn btn-primary">Create match</button>
+      </div>
+    </form>`;
+  openModal();
+
+  el("new-match-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const payload = Object.fromEntries(new FormData(e.target).entries());
+    for (const key of Object.keys(payload)) payload[key] = String(payload[key]).trim();
+    try {
+      const id = await createMatch(payload, state.user);
+      state.matchId = id;
+      closeModal();
+      toast("Match created with 10 fixed windows.");
+    } catch (e2) {
+      toast(err(e2));
+    }
+  });
 }
 
 async function removeSelectedMatch() {

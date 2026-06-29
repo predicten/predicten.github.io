@@ -254,7 +254,7 @@ select, input[type="number"] {
   color: var(--muted);
   font-size: 11px;
 }
-.predict-form, .stats-form, .clock-controls {
+.predict-form, .stats-form, .clock-controls, .new-match-form {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
@@ -308,6 +308,11 @@ select, input[type="number"] {
   display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: center;
   padding: 9px 12px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--border);
 }
+.leaderboard li.leaderboard-empty {
+  display: block;
+  text-align: center;
+  padding: 14px 12px;
+}
 .leaderboard li.me { border-color: var(--green); }
 .leaderboard .rank { color: var(--muted); font-weight: 700; }
 .leaderboard .pts { font-weight: 800; font-variant-numeric: tabular-nums; }
@@ -328,6 +333,9 @@ select, input[type="number"] {
 .modal-head h3 { margin: 0; font-size: 17px; }
 #modal-body { padding: 18px; }
 .modal-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; }
+.new-match-form .field:first-child,
+.new-match-form .field:nth-child(2),
+.new-match-form .field:nth-child(3) { grid-column: 1 / -1; }
 .actual-line { margin: 0 0 14px; color: var(--muted); }
 .warn { color: var(--red); }
 

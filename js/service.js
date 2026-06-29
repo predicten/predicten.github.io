@@ -53,12 +53,32 @@ function cleanStats(payload = {}) {
 // Match + window setup
 // ---------------------------------------------------------------------------
 
-export async function createMatch({ name, homeTeam, awayTeam }, adminUser) {
+export async function createMatch({
+  name,
+  homeTeam,
+  awayTeam,
+  homeCode,
+  awayCode,
+  matchDate,
+  kickoffLocal,
+  stage,
+  group,
+  venue,
+  city,
+}, adminUser) {
   const ref = doc(collection(db, "matches"));
   await setDoc(ref, {
     name: name || `${homeTeam} vs ${awayTeam}`,
     homeTeam: homeTeam || "Home",
     awayTeam: awayTeam || "Away",
+    homeCode: homeCode || null,
+    awayCode: awayCode || null,
+    matchDate: matchDate || null,
+    kickoffLocal: kickoffLocal || null,
+    stage: stage || null,
+    group: group || null,
+    venue: venue || null,
+    city: city || null,
     period: PERIODS.PRE,
     matchMinute: 0,
     createdAt: serverTimestamp(),
@@ -68,22 +88,25 @@ export async function createMatch({ name, homeTeam, awayTeam }, adminUser) {
   return ref.id;
 }
 
-// Import external fixture data into /matches using stable ids so repeated imports
-// update existing matches instead of creating duplicates.
+// Import external fixture data into /matches using stable ids. Existing fixture ids
+// are skipped so repeated imports do not duplicate or reset matches/windows.
 export async function importFixtureMatches(fixtures = [], adminUser) {
   if (!adminUser) throw new Error("Admin sign-in is required to import fixtures.");
-  const imported = [];
+  const created = [];
+  const skipped = [];
 
   for (const fixture of fixtures) {
     if (!fixture.id) throw new Error("Fixture is missing a stable id.");
     const ref = matchRef(fixture.id);
     const existing = await getDoc(ref);
-    const base = existing.exists() ? {} : { period: PERIODS.PRE, matchMinute: 0, createdAt: serverTimestamp() };
+    if (existing.exists()) {
+      skipped.push(fixture.id);
+      continue;
+    }
 
     await setDoc(
       ref,
       {
-        ...base,
         name: fixture.name || `${fixture.homeTeam} vs ${fixture.awayTeam}`,
         homeTeam: fixture.homeTeam,
         awayTeam: fixture.awayTeam,
@@ -97,6 +120,9 @@ export async function importFixtureMatches(fixtures = [], adminUser) {
         city: fixture.city || null,
         source: fixture.source || "Imported fixture",
         sourceUrl: fixture.sourceUrl || null,
+        period: PERIODS.PRE,
+        matchMinute: 0,
+        createdAt: serverTimestamp(),
         importedAt: serverTimestamp(),
         importedBy: adminUser.uid,
       },
@@ -104,10 +130,10 @@ export async function importFixtureMatches(fixtures = [], adminUser) {
     );
 
     await createFixedPredictionWindowsForMatch(fixture.id);
-    imported.push(fixture.id);
+    created.push(fixture.id);
   }
 
-  return imported;
+  return { created, skipped };
 }
 
 // Delete a match and the app-owned subcollections below it.

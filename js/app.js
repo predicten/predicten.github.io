@@ -351,7 +351,7 @@ function renderPredictionForm(window) {
 function renderLeaderboard(standings) {
   const list = el("leaderboard");
   if (!standings.length) {
-    list.innerHTML = `<li class="muted">No points yet — be the first to predict.</li>`;
+    list.innerHTML = `<li class="leaderboard-empty muted">No points yet — be the first to predict.</li>`;
     return;
   }
   list.innerHTML = standings
