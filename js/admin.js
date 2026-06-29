@@ -90,7 +90,7 @@ function initAutoHideHeader() {
       const current = window.scrollY;
       const delta = current - lastScrollY;
       const shouldHide = current > 48 && delta > 8;
-      const shouldShow = current < 12 || delta < -8;
+      const shouldShow = current < 12;
 
       if (shouldHide) {
         topbar.classList.add("topbar-hidden");
