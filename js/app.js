@@ -118,15 +118,30 @@ function scrollToPanel(index, { resetVertical = false } = {}) {
   const grid = document.querySelector(".grid");
   const panel = document.querySelector(`.grid > .panel[data-panel-index="${index}"]`);
   if (!grid || !panel) return;
-  grid.scrollTo({ left: panel.offsetLeft - grid.offsetLeft, behavior: "smooth" });
+  grid.scrollTo({ left: panel.offsetLeft - grid.offsetLeft, behavior: "auto" });
   setActivePanelTab(index);
 
   if (resetVertical && window.matchMedia("(max-width: 980px)").matches) {
-    const tabs = document.querySelector(".mobile-panel-tabs");
-    const tabsHeight = tabs ? tabs.getBoundingClientRect().height : 0;
-    const targetTop = window.scrollY + grid.getBoundingClientRect().top - tabsHeight - 10;
-    window.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
+    hideTopbar();
+    window.requestAnimationFrame(() => scrollToGridTop());
   }
+}
+
+function hideTopbar() {
+  const topbar = document.querySelector(".topbar");
+  if (!topbar) return;
+  topbar.classList.add("topbar-hidden");
+  document.body.classList.add("header-hidden");
+}
+
+function scrollToGridTop() {
+  const grid = document.querySelector(".grid");
+  const tabs = document.querySelector(".mobile-panel-tabs");
+  if (!grid) return;
+  const tabsHeight = tabs ? tabs.offsetHeight : 0;
+  const gridTop = grid.getBoundingClientRect().top + window.scrollY;
+  const targetTop = Math.max(0, gridTop - tabsHeight - 8);
+  window.scrollTo({ top: targetTop, behavior: "auto" });
 }
 
 // ---------------------------------------------------------------------------
