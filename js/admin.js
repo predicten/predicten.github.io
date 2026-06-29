@@ -4,6 +4,7 @@ import { isAdmin, loginWithGoogle, logout, watchAuth } from "./auth.js";
 import {
   createMatch,
   getWindowPredictions,
+  importFixtureMatches,
   recalculateFixedWindowScores,
   submitManualStatsForFixedWindow,
   updateMatchClock,
@@ -97,9 +98,23 @@ function initMatches() {
     }
   });
 
+  el("import-fifa-btn").addEventListener("click", importFifaToday);
+
   el("clock-save").addEventListener("click", saveClock);
   el("period-select").addEventListener("change", () => (state.clockDirty = true));
   el("minute-input").addEventListener("input", () => (state.clockDirty = true));
+}
+
+async function importFifaToday() {
+  try {
+    const res = await fetch("data/fifa-2026-06-28-matches.json", { cache: "no-store" });
+    if (!res.ok) throw new Error(`Could not load FIFA fixture data (${res.status}).`);
+    const fixtures = await res.json();
+    const ids = await importFixtureMatches(fixtures, state.user);
+    toast(`Imported ${ids.length} FIFA matches.`);
+  } catch (e) {
+    toast(err(e));
+  }
 }
 
 function selectMatch(matchId) {

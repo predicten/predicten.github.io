@@ -1,0 +1,47 @@
+[
+  {
+    "id": "fifa-2026-06-28-alg-aut",
+    "source": "FIFA World Cup 2026 scores & fixtures",
+    "sourceUrl": "https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/scores-fixtures?country=US&wtw-filter=ALL",
+    "matchDate": "2026-06-28",
+    "kickoffLocal": "02:00",
+    "homeTeam": "Algeria",
+    "homeCode": "ALG",
+    "awayTeam": "Austria",
+    "awayCode": "AUT",
+    "stage": "First Stage",
+    "group": "Group J",
+    "venue": "Kansas City Stadium",
+    "city": "Kansas City"
+  },
+  {
+    "id": "fifa-2026-06-28-jor-arg",
+    "source": "FIFA World Cup 2026 scores & fixtures",
+    "sourceUrl": "https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/scores-fixtures?country=US&wtw-filter=ALL",
+    "matchDate": "2026-06-28",
+    "kickoffLocal": "02:00",
+    "homeTeam": "Jordan",
+    "homeCode": "JOR",
+    "awayTeam": "Argentina",
+    "awayCode": "ARG",
+    "stage": "First Stage",
+    "group": "Group J",
+    "venue": "Dallas Stadium",
+    "city": "Dallas"
+  },
+  {
+    "id": "fifa-2026-06-28-2a-2b",
+    "source": "FIFA World Cup 2026 scores & fixtures",
+    "sourceUrl": "https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/scores-fixtures?country=US&wtw-filter=ALL",
+    "matchDate": "2026-06-28",
+    "kickoffLocal": "19:00",
+    "homeTeam": "2A",
+    "homeCode": "2A",
+    "awayTeam": "2B",
+    "awayCode": "2B",
+    "stage": "Round of 32",
+    "group": null,
+    "venue": "Los Angeles Stadium",
+    "city": "Los Angeles"
+  }
+]

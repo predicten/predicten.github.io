@@ -69,6 +69,48 @@ export async function createMatch({ name, homeTeam, awayTeam }, adminUser) {
   return ref.id;
 }
 
+// Import external fixture data into /matches using stable ids so repeated imports
+// update existing matches instead of creating duplicates.
+export async function importFixtureMatches(fixtures = [], adminUser) {
+  if (!adminUser) throw new Error("Admin sign-in is required to import fixtures.");
+  const imported = [];
+
+  for (const fixture of fixtures) {
+    if (!fixture.id) throw new Error("Fixture is missing a stable id.");
+    const ref = matchRef(fixture.id);
+    const existing = await getDoc(ref);
+    const base = existing.exists() ? {} : { period: PERIODS.PRE, matchMinute: 0, createdAt: serverTimestamp() };
+
+    await setDoc(
+      ref,
+      {
+        ...base,
+        name: fixture.name || `${fixture.homeTeam} vs ${fixture.awayTeam}`,
+        homeTeam: fixture.homeTeam,
+        awayTeam: fixture.awayTeam,
+        homeCode: fixture.homeCode || null,
+        awayCode: fixture.awayCode || null,
+        matchDate: fixture.matchDate || null,
+        kickoffLocal: fixture.kickoffLocal || null,
+        stage: fixture.stage || null,
+        group: fixture.group || null,
+        venue: fixture.venue || null,
+        city: fixture.city || null,
+        source: fixture.source || "Imported fixture",
+        sourceUrl: fixture.sourceUrl || null,
+        importedAt: serverTimestamp(),
+        importedBy: adminUser.uid,
+      },
+      { merge: true }
+    );
+
+    await createFixedPredictionWindowsForMatch(fixture.id);
+    imported.push(fixture.id);
+  }
+
+  return imported;
+}
+
 // Create the 10 fixed match windows for a match. Identical for every player.
 export async function createFixedPredictionWindowsForMatch(matchId) {
   const batch = writeBatch(db);
