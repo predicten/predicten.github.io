@@ -52,6 +52,7 @@ const CLOCK_STATES = [
 el("login-btn").addEventListener("click", () => loginWithGoogle().catch((e) => toast(err(e))));
 el("logout-btn").addEventListener("click", () => logout());
 el("denied-logout").addEventListener("click", () => logout());
+initAutoHideHeader();
 
 watchAuth((user) => {
   state.user = user;
@@ -76,6 +77,35 @@ watchAuth((user) => {
   show("admin-view");
   initMatches();
 });
+
+function initAutoHideHeader() {
+  const topbar = document.querySelector(".topbar");
+  if (!topbar) return;
+  let lastScrollY = window.scrollY;
+  let ticking = false;
+
+  window.addEventListener("scroll", () => {
+    if (ticking) return;
+    window.requestAnimationFrame(() => {
+      const current = window.scrollY;
+      const delta = current - lastScrollY;
+      const shouldHide = current > 48 && delta > 8;
+      const shouldShow = current < 12 || delta < -8;
+
+      if (shouldHide) {
+        topbar.classList.add("topbar-hidden");
+        document.body.classList.add("header-hidden");
+      } else if (shouldShow) {
+        topbar.classList.remove("topbar-hidden");
+        document.body.classList.remove("header-hidden");
+      }
+
+      lastScrollY = Math.max(0, current);
+      ticking = false;
+    });
+    ticking = true;
+  }, { passive: true });
+}
 
 // ---------------------------------------------------------------------------
 // Matches

@@ -38,6 +38,7 @@ el("login-btn").addEventListener("click", async () => {
   }
 });
 el("logout-btn").addEventListener("click", () => logout());
+initAutoHideHeader();
 initMobilePanelTabs();
 
 watchAuth((user) => {
@@ -82,6 +83,35 @@ function setActivePanelTab(index) {
   document.querySelectorAll(".mobile-panel-tab").forEach((tab) => {
     tab.classList.toggle("active", Number(tab.dataset.panelIndex) === index);
   });
+}
+
+function initAutoHideHeader() {
+  const topbar = document.querySelector(".topbar");
+  if (!topbar) return;
+  let lastScrollY = window.scrollY;
+  let ticking = false;
+
+  window.addEventListener("scroll", () => {
+    if (ticking) return;
+    window.requestAnimationFrame(() => {
+      const current = window.scrollY;
+      const delta = current - lastScrollY;
+      const shouldHide = current > 48 && delta > 8;
+      const shouldShow = current < 12 || delta < -8;
+
+      if (shouldHide) {
+        topbar.classList.add("topbar-hidden");
+        document.body.classList.add("header-hidden");
+      } else if (shouldShow) {
+        topbar.classList.remove("topbar-hidden");
+        document.body.classList.remove("header-hidden");
+      }
+
+      lastScrollY = Math.max(0, current);
+      ticking = false;
+    });
+    ticking = true;
+  }, { passive: true });
 }
 
 function scrollToPanel(index) {
