@@ -12,6 +12,7 @@ import {
 } from "./service.js";
 import {
   PERIODS,
+  SCORING,
   STAT_FIELDS,
   STAT_LABELS,
   getWindowStatus,
@@ -308,19 +309,23 @@ function renderPredictArea() {
   }
   area.innerHTML = `
     <p class="predict-target">
-      Settle your predictions. Slide each stat from 1–10 and submit or update any unsettled window.
+      Settle your predictions. Tap − / + to set each stat, then submit or update any unsettled window.
     </p>
     <div class="prediction-stack">
       ${state.windows.map(renderPredictionForm).join("")}
     </div>`;
 
   area.querySelectorAll(".predict-form").forEach((form) => {
-    if (form.dataset.settled === "true") return;
-
-    form.querySelectorAll(".prediction-slider").forEach((slider) => {
-      slider.addEventListener("input", () => {
-        const output = form.querySelector(`[data-slider-value="${slider.name}"]`);
-        if (output) output.textContent = slider.value;
+    form.querySelectorAll(".stepper-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const field = btn.dataset.field;
+        const step = Number(btn.dataset.step);
+        const input = form.querySelector(`input[name="${field}"]`);
+        const output = form.querySelector(`[data-stat-value="${field}"]`);
+        if (!input) return;
+        const next = clampStat(Number(input.value) + step);
+        input.value = next;
+        if (output) output.textContent = next;
       });
     });
 
@@ -341,33 +346,79 @@ function renderPredictArea() {
 
 function renderPredictionForm(window) {
   const status = getWindowStatus(window, state.match);
-  const settled = status === "settled";
   const existing = state.myPredictions[window.order];
+
+  if (status === "settled") {
+    return renderSettledCard(window, existing);
+  }
+
   const fields = STAT_FIELDS.map((f) => {
-    const val = Math.min(10, Math.max(1, Number(existing ? existing.payload?.[f] ?? 1 : 1)));
+    const val = clampStat(existing ? existing.payload?.[f] : 1);
     return `
-      <label class="field prediction-slider-field">
-        <span class="prediction-slider-head">
-          <span>${STAT_LABELS[f]}</span>
-          <output data-slider-value="${f}">${val}</output>
-        </span>
-        <input class="prediction-slider" type="range" min="1" max="10" step="1" name="${f}" value="${val}" ${settled ? "disabled" : ""} />
-        <span class="slider-scale"><span>1</span><span>10</span></span>
-      </label>`;
+      <div class="stepper-row">
+        <span class="stepper-label">${STAT_LABELS[f]}</span>
+        <div class="stepper">
+          <button type="button" class="stepper-btn" data-step="-1" data-field="${f}" aria-label="Decrease ${STAT_LABELS[f]}">−</button>
+          <output class="stepper-value" data-stat-value="${f}">${val}</output>
+          <button type="button" class="stepper-btn" data-step="1" data-field="${f}" aria-label="Increase ${STAT_LABELS[f]}">+</button>
+        </div>
+        <input type="hidden" name="${f}" value="${val}" />
+      </div>`;
   }).join("");
 
   return `
-    <form class="predict-form prediction-card ${settled ? "settled" : ""}" data-window-order="${window.order}" data-settled="${settled}">
+    <form class="predict-form prediction-card" data-window-order="${window.order}">
       <div class="prediction-card-head">
         <strong>${escapeHtml(window.label)}</strong>
         <span class="badge badge-${status}">${status}</span>
-        ${existing ? `<span class="muted">${settled && existing.scored ? `${existing.points || 0} pts` : "submitted"}</span>` : ""}
+        ${existing ? `<span class="muted">submitted</span>` : ""}
       </div>
-      ${fields}
-      <button type="submit" class="btn btn-primary" ${settled ? "disabled" : ""}>
+      <div class="stat-steppers">${fields}</div>
+      <button type="submit" class="btn btn-primary">
         ${existing ? "Update prediction" : "Submit prediction"}
       </button>
     </form>`;
+}
+
+function renderSettledCard(window, existing) {
+  const head = `
+    <div class="prediction-card-head">
+      <strong>${escapeHtml(window.label)}</strong>
+      <span class="badge badge-settled">settled</span>
+      ${existing && existing.scored ? `<span class="prediction-points">${existing.points || 0} pts</span>` : ""}
+    </div>`;
+
+  if (!existing) {
+    return `
+      <div class="prediction-card settled" data-window-order="${window.order}">
+        ${head}
+        <p class="muted no-pick">No prediction made for this window.</p>
+      </div>`;
+  }
+
+  const chips = STAT_FIELDS.map((f) => {
+    const val = existing.payload?.[f] ?? "–";
+    const pts = existing.breakdown?.[f];
+    let tone = "";
+    if (existing.scored && pts != null) {
+      tone = pts <= 0 ? "miss" : pts >= SCORING[f].exact ? "exact" : "close";
+    }
+    return `
+      <span class="summary-chip ${tone}">
+        <b>${STAT_LABELS[f]}</b>
+        <em>${val}</em>
+      </span>`;
+  }).join("");
+
+  return `
+    <div class="prediction-card settled" data-window-order="${window.order}">
+      ${head}
+      <div class="stat-summary">${chips}</div>
+    </div>`;
+}
+
+function clampStat(v) {
+  return Math.min(10, Math.max(1, Math.round(Number(v) || 1)));
 }
 
 function renderLeaderboard(standings) {
