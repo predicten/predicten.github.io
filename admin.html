@@ -45,20 +45,19 @@
           <select id="match-select"></select>
           <span id="match-clock" class="clock"></span>
         </div>
-        <button id="new-match-btn" class="btn btn-ghost">+ New match</button>
-        <button id="delete-match-btn" class="btn btn-danger">Remove match</button>
+        <div class="admin-actions">
+          <button id="new-match-btn" class="btn btn-ghost">+ Add Match</button>
+          <button id="delete-match-btn" class="btn btn-danger">Remove match</button>
+        </div>
       </div>
 
       <section class="panel">
         <h2>Match clock</h2>
-        <p class="muted">No live feed in the MVP — move the slider to the latest fixed match checkpoint.</p>
+        <p class="muted">No live feed in the MVP — tap a checkpoint or use Back / Advance as the match progresses.</p>
         <div class="clock-controls">
-          <label class="field clock-slider-field">
-            <span>Match progress</span>
-            <input type="range" id="clock-slider" min="0" max="12" step="1" value="0" />
-            <output id="clock-slider-label">Pre-match</output>
-          </label>
-          <button id="clock-save" class="btn btn-primary">Update clock</button>
+          <button id="clock-back" class="btn btn-ghost clock-step" type="button" aria-label="Previous checkpoint">‹ Back</button>
+          <div id="clock-chips" class="clock-chips" role="group" aria-label="Match checkpoints"></div>
+          <button id="clock-advance" class="btn btn-primary clock-step" type="button" aria-label="Next checkpoint">Advance ›</button>
         </div>
       </section>
 

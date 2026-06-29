@@ -254,20 +254,44 @@ select, input[type="number"] {
   color: var(--muted);
   font-size: 11px;
 }
-.predict-form, .stats-form, .clock-controls, .new-match-form {
+.predict-form, .stats-form, .new-match-form {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
-.clock-controls { grid-template-columns: 1fr auto; align-items: end; }
-.clock-slider-field input[type="range"] { width: 100%; accent-color: var(--primary); }
-.clock-slider-field output {
-  align-self: flex-start;
-  padding: 4px 10px;
+.clock-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.clock-step { flex: 0 0 auto; white-space: nowrap; }
+.clock-step:disabled { opacity: 0.45; cursor: not-allowed; }
+.clock-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.clock-chip {
+  appearance: none;
+  cursor: pointer;
+  padding: 7px 12px;
   border-radius: 999px;
+  border: 1px solid var(--border);
   background: var(--panel-2);
-  color: var(--text);
+  color: var(--muted);
   font-weight: 700;
+  font-size: 13px;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.05s ease;
+}
+.clock-chip:hover { color: var(--text); border-color: var(--primary); }
+.clock-chip:active { transform: translateY(1px); }
+.clock-chip.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
 }
 .field { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--muted); }
 .field input, .field select { width: 100%; }
@@ -339,6 +363,7 @@ select, input[type="number"] {
 
 /* Admin */
 .admin-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+.admin-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .panel + .panel { margin-top: 18px; }
 .table-wrap { overflow-x: auto; }
 .windows-table { width: 100%; border-collapse: collapse; font-size: 14px; }

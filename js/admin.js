@@ -28,7 +28,6 @@ const state = {
   matches: [],
   windows: [],
   unsub: { match: null, windows: null },
-  clockDirty: false,
 };
 
 const CLOCK_STATES = [
@@ -137,11 +136,8 @@ function initMatches() {
 
   el("delete-match-btn").addEventListener("click", openRemoveMatchesModal);
 
-  el("clock-save").addEventListener("click", saveClock);
-  el("clock-slider").addEventListener("input", () => {
-    state.clockDirty = true;
-    renderClockSliderLabel(Number(el("clock-slider").value));
-  });
+  el("clock-back").addEventListener("click", () => stepClock(-1));
+  el("clock-advance").addEventListener("click", () => stepClock(1));
 }
 
 function openNewMatchModal() {
@@ -285,7 +281,6 @@ function openRemoveMatchesModal() {
 
 function selectMatch(matchId) {
   state.matchId = matchId;
-  state.clockDirty = false;
   Object.values(state.unsub).forEach((fn) => fn && fn());
 
   state.unsub.match = watchMatch(matchId, (match) => {
@@ -304,32 +299,54 @@ function selectMatch(matchId) {
 // ---------------------------------------------------------------------------
 function renderClock() {
   if (!state.match) return;
-  // Don't stomp on edits the admin is mid-way through making.
-  if (!state.clockDirty) {
-    const sliderIndex = clockStateIndexForMatch(state.match);
-    el("clock-slider").value = sliderIndex;
-    renderClockSliderLabel(sliderIndex);
-  }
+  const index = clockStateIndexForMatch(state.match);
+  renderClockChips(index);
   el("match-clock").textContent = `${state.match.period} ${state.match.matchMinute ?? 0}'`;
 }
 
-async function saveClock() {
+function renderClockChips(activeIndex) {
+  const container = el("clock-chips");
+  if (!container) return;
+  container.innerHTML = CLOCK_STATES.map(
+    (clock, i) =>
+      `<button type="button" class="clock-chip${i === activeIndex ? " active" : ""}" data-index="${i}" aria-pressed="${i === activeIndex}">${esc(clock.label)}</button>`
+  ).join("");
+
+  container.querySelectorAll(".clock-chip").forEach((btn) => {
+    btn.addEventListener("click", () => saveClockIndex(Number(btn.dataset.index)));
+  });
+
+  el("clock-back").disabled = activeIndex <= 0;
+  el("clock-advance").disabled = activeIndex >= CLOCK_STATES.length - 1;
+}
+
+function stepClock(delta) {
+  if (!state.match) {
+    toast("Select a match first.");
+    return;
+  }
+  const current = clockStateIndexForMatch(state.match);
+  const next = Math.min(CLOCK_STATES.length - 1, Math.max(0, current + delta));
+  if (next === current) return;
+  saveClockIndex(next);
+}
+
+async function saveClockIndex(index) {
+  if (!state.matchId) {
+    toast("Select a match first.");
+    return;
+  }
+  const clock = CLOCK_STATES[index] || CLOCK_STATES[0];
+  renderClockChips(index);
   try {
-    const clock = CLOCK_STATES[Number(el("clock-slider").value)] || CLOCK_STATES[0];
     await updateMatchClock(state.matchId, {
       period: clock.period,
       matchMinute: clock.matchMinute,
     });
-    state.clockDirty = false;
-    toast("Clock updated.");
+    toast(`Clock set to ${clock.label}.`);
   } catch (e) {
     toast(err(e));
   }
-}
-
-function renderClockSliderLabel(index) {
-  const clock = CLOCK_STATES[index] || CLOCK_STATES[0];
-  el("clock-slider-label").textContent = clock.label;
 }
 
 function clockStateIndexForMatch(match) {
