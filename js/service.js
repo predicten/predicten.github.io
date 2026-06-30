@@ -83,6 +83,8 @@ export async function createMatch({
     matchMinute: 0,
     createdAt: serverTimestamp(),
     createdBy: adminUser ? adminUser.uid : null,
+    createdByName: adminUser ? (adminUser.displayName || adminUser.email || null) : null,
+    createdByEmail: adminUser ? (adminUser.email || "").toLowerCase() : null,
   });
   await createFixedPredictionWindowsForMatch(ref.id);
   return ref.id;
@@ -291,6 +293,33 @@ async function applyScores(matchId, windowId) {
 export async function getMatch(matchId) {
   const snap = await getDoc(matchRef(matchId));
   return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+}
+
+export async function getUser(uid) {
+  if (!uid) return null;
+  const snap = await getDoc(doc(db, "users", uid));
+  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+}
+
+// Unique participants of a game, derived from their predictions. Returns each
+// player with how many windows they predicted and their points so far.
+export async function getMatchParticipants(matchId) {
+  const snap = await getDocs(predictionsCol(matchId));
+  const byUser = new Map();
+  snap.forEach((d) => {
+    const p = d.data();
+    const cur = byUser.get(p.userId) || {
+      userId: p.userId,
+      displayName: p.displayName || "Player",
+      predictions: 0,
+      points: 0,
+    };
+    cur.predictions += 1;
+    cur.points += p.points || 0;
+    if (p.displayName) cur.displayName = p.displayName;
+    byUser.set(p.userId, cur);
+  });
+  return Array.from(byUser.values()).sort((a, b) => b.points - a.points);
 }
 
 export function watchMatches(callback) {

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PredicTen — Subgroups</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-dot admin"></span>
+        <span class="brand-full">PredicTen Subgroups</span>
+        <span class="brand-short">PT</span>
+      </div>
+      <nav class="topbar-actions">
+        <a class="link" href="admin.html">Admin</a>
+        <a class="link" href="index.html">Player view</a>
+        <span id="user-chip" class="user-chip hidden"></span>
+        <button id="logout-btn" class="btn btn-ghost hidden">Sign out</button>
+      </nav>
+    </header>
+
+    <section id="login-view" class="login-view hidden">
+      <div class="login-card">
+        <h1>Super admin sign in</h1>
+        <p class="muted">Sign in with the super admin account to view subgroups.</p>
+        <button id="login-btn" class="btn btn-google"><span class="g">G</span> Sign in with Google</button>
+      </div>
+    </section>
+
+    <section id="denied-view" class="login-view hidden">
+      <div class="login-card">
+        <h1>Super admins only</h1>
+        <p class="muted">This page is limited to the PredicTen super admin.</p>
+        <button id="denied-logout" class="btn btn-ghost">Sign out</button>
+      </div>
+    </section>
+
+    <main id="overview-view" class="app-view hidden">
+      <div class="overview-head">
+        <h1>Subgroups</h1>
+        <p class="muted">Every game, its subgroup admin, and the players taking part.</p>
+      </div>
+
+      <div id="overview-empty" class="empty hidden">
+        No games yet. Subgroup admins can create one from the
+        <a class="link" href="admin.html">admin console</a>.
+      </div>
+
+      <ul id="subgroup-list" class="subgroup-list"></ul>
+    </main>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <script type="module" src="js/overview.js"></script>
+  </body>
+</html>

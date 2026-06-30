@@ -443,6 +443,55 @@ select, input[type="number"] {
 .admin-row .remove-admin { flex: 0 0 auto; }
 .admin-empty { padding: 6px 2px; }
 
+/* Super-admin subgroups overview */
+.overview-head { margin-bottom: 16px; }
+.overview-head h1 { margin: 0 0 4px; font-size: 24px; }
+.subgroup-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.subgroup-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+  overflow: hidden;
+}
+.subgroup-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  cursor: pointer;
+}
+.subgroup-summary:hover { background: var(--panel-2); }
+.subgroup-caret { color: var(--muted); transition: transform 0.15s ease; flex: 0 0 auto; }
+.subgroup-card.open .subgroup-caret { transform: rotate(90deg); }
+.subgroup-main { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
+.subgroup-game { font-weight: 700; font-size: 16px; }
+.subgroup-admin { color: var(--muted); font-size: 13px; }
+.subgroup-admin em { font-style: normal; opacity: 0.7; margin-right: 4px; }
+.join-btn { flex: 0 0 auto; white-space: nowrap; }
+.subgroup-participants { display: none; padding: 0 16px 14px 42px; }
+.subgroup-card.open .subgroup-participants { display: block; }
+.participants-note { margin: 4px 0 0; }
+.participant-list { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.participant-list li {
+  display: grid;
+  grid-template-columns: 28px 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--panel-2);
+}
+.participant-list .rank { color: var(--muted); font-variant-numeric: tabular-nums; }
+.participant-list .name { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.participant-list .participant-meta { color: var(--muted); font-size: 12px; }
+.participant-list .pts { font-weight: 700; font-variant-numeric: tabular-nums; }
+@media (max-width: 560px) {
+  .subgroup-summary { flex-wrap: wrap; }
+  .join-btn { order: 3; width: 100%; }
+  .subgroup-participants { padding-left: 16px; }
+}
+
 .espn-fetch { display: flex; gap: 8px; align-items: center; }
 .espn-input {
   flex: 1;

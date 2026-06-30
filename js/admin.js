@@ -120,8 +120,13 @@ function applyGate() {
   }
   hide("denied-view");
   show("admin-view");
-  if (isSuperAdmin(user)) show("manage-admins");
-  else hide("manage-admins");
+  if (isSuperAdmin(user)) {
+    show("manage-admins");
+    show("overview-link");
+  } else {
+    hide("manage-admins");
+    hide("overview-link");
+  }
   enterAdmin();
 }
 
@@ -235,8 +240,10 @@ function initMatches() {
       updateMatchShare();
       return;
     }
+    const preferred = new URLSearchParams(location.search).get("match");
     const next =
       (state.matchId && matches.some((m) => m.id === state.matchId) && state.matchId) ||
+      (preferred && matches.some((m) => m.id === preferred) && preferred) ||
       matches[0].id;
     select.value = next;
     if (next !== state.matchId) selectMatch(next);
