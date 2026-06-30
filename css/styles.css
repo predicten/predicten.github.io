@@ -383,6 +383,19 @@ select, input[type="number"] {
 .summary-chip.miss .real { color: var(--text); }
 .summary-chip.miss { opacity: 0.8; }
 
+.espn-fetch { display: flex; gap: 8px; align-items: center; }
+.espn-input {
+  flex: 1;
+  min-width: 0;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 10px;
+  border-radius: 9px;
+  font-size: 14px;
+}
+.espn-fetch .btn { flex: 0 0 auto; white-space: nowrap; }
+.espn-note { margin: 8px 0 14px; font-size: 12px; }
 .stats-form { display: flex; flex-direction: column; gap: 12px; }
 .new-match-form {
   display: grid;

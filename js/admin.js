@@ -446,6 +446,11 @@ function openStatsModal(window, override, isRecalc = false) {
   el("modal-title").textContent = `${isRecalc ? "Recalculate" : "Enter stats"} — ${window.label}`;
   el("modal-body").innerHTML = `
     ${override && !isRecalc ? `<p class="warn">Override: this window is not completed yet.</p>` : ""}
+    <div class="espn-fetch">
+      <input type="text" id="espn-url" class="espn-input" placeholder="ESPN game URL or ID" value="${esc(state.match?.espnGameId || lastEspnGameId || "")}" />
+      <button type="button" id="espn-fetch-btn" class="btn btn-ghost">Fetch from ESPN</button>
+    </div>
+    <p class="muted espn-note">Auto-fills this window from ESPN match commentary. Review the numbers, then confirm by saving. Goals, cards and corners are reliable; fouls and shots on goal are approximate.</p>
     <form id="stats-form" class="stats-form">
       <div class="stat-steppers">${fields}</div>
       <div class="modal-actions">
@@ -457,17 +462,44 @@ function openStatsModal(window, override, isRecalc = false) {
   openModal();
 
   const statsForm = el("stats-form");
+  const setStat = (field, value) => {
+    const input = statsForm.querySelector(`input[name="${field}"]`);
+    const output = statsForm.querySelector(`[data-stat-value="${field}"]`);
+    const next = clampStat(value);
+    if (input) input.value = next;
+    if (output) output.textContent = next;
+  };
+
   statsForm.querySelectorAll(".stepper-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       const field = btn.dataset.field;
       const step = Number(btn.dataset.step);
       const input = statsForm.querySelector(`input[name="${field}"]`);
-      const output = statsForm.querySelector(`[data-stat-value="${field}"]`);
       if (!input) return;
-      const next = clampStat(Number(input.value) + step);
-      input.value = next;
-      if (output) output.textContent = next;
+      setStat(field, Number(input.value) + step);
     });
+  });
+
+  el("espn-fetch-btn").addEventListener("click", async () => {
+    const gameId = parseEspnGameId(el("espn-url").value);
+    if (!gameId) {
+      toast("Enter a valid ESPN game URL or ID.");
+      return;
+    }
+    lastEspnGameId = gameId;
+    const btn = el("espn-fetch-btn");
+    btn.disabled = true;
+    btn.textContent = "Fetching…";
+    try {
+      const stats = await fetchEspnWindowStats(gameId, window.order);
+      STAT_FIELDS.forEach((f) => setStat(f, stats[f]));
+      toast(`Filled ${window.label} from ESPN — review, then save to settle.`);
+    } catch (e) {
+      toast(err(e));
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Fetch from ESPN";
+    }
   });
 
   el("stats-form").addEventListener("submit", async (e) => {
@@ -569,6 +601,75 @@ function toast(msg) {
 
 function clampStat(v) {
   return Math.min(10, Math.max(0, Math.round(Number(v) || 0)));
+}
+
+// ---------------------------------------------------------------------------
+// ESPN auto-fill: scrape a match's summary feed and bucket timestamped events
+// into the fixed 10-minute window being settled. Pre-fills for admin review.
+// ---------------------------------------------------------------------------
+let lastEspnGameId = "";
+
+function parseEspnGameId(input) {
+  if (!input) return null;
+  const byPath = String(input).match(/gameId\/(\d+)/i);
+  if (byPath) return byPath[1];
+  const anyNum = String(input).match(/(\d{4,})/);
+  return anyNum ? anyNum[1] : null;
+}
+
+// Map an ESPN clock string ("7'", "45'+2'", "90'+3'") to a fixed window order.
+function espnMinuteToWindowOrder(displayValue) {
+  if (!displayValue) return null;
+  const s = String(displayValue).trim();
+  const base = parseInt(s, 10);
+  if (!Number.isFinite(base)) return null;
+  const stoppage = s.includes("+");
+  if (stoppage) {
+    if (base >= 90) return 9; // second-half stoppage -> 85:00–FT
+    if (base >= 45) return 4; // first-half stoppage -> 40:00–HT
+    return null;
+  }
+  if (base <= 10) return 0;
+  if (base <= 20) return 1;
+  if (base <= 30) return 2;
+  if (base <= 40) return 3;
+  if (base <= 45) return 4;
+  if (base <= 55) return 5;
+  if (base <= 65) return 6;
+  if (base <= 75) return 7;
+  if (base <= 85) return 8;
+  return 9;
+}
+
+async function fetchEspnWindowStats(gameId, order) {
+  const url = `https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/summary?event=${gameId}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`ESPN responded ${res.status}.`);
+  const data = await res.json();
+
+  const stats = { goals: 0, shotsOnGoal: 0, corners: 0, fouls: 0, cards: 0 };
+
+  // Goals + cards come from keyEvents (reliable minute + type).
+  (data.keyEvents || []).forEach((e) => {
+    if (espnMinuteToWindowOrder(e.clock?.displayValue) !== order) return;
+    const type = (e.type?.text || "").toLowerCase();
+    if (e.scoringPlay) {
+      stats.goals += 1;
+      stats.shotsOnGoal += 1; // a goal is a shot on target
+    }
+    if (type.includes("yellow card") || type.includes("red card")) stats.cards += 1;
+  });
+
+  // Corners, fouls, shots on target parsed from timestamped commentary.
+  (data.commentary || []).forEach((c) => {
+    if (espnMinuteToWindowOrder(c.time?.displayValue) !== order) return;
+    const tx = (c.text || "").toLowerCase();
+    if (/\bcorner\b/.test(tx)) stats.corners += 1;
+    if (/\bfoul by\b/.test(tx)) stats.fouls += 1;
+    if (tx.includes("attempt saved")) stats.shotsOnGoal += 1;
+  });
+
+  return stats;
 }
 
 function err(e) {
