@@ -353,7 +353,7 @@ function renderPredictionForm(window) {
   }
 
   const fields = STAT_FIELDS.map((f) => {
-    const val = clampStat(existing ? existing.payload?.[f] : 1);
+    const val = clampStat(existing ? existing.payload?.[f] : 0);
     return `
       <div class="stepper-row">
         <span class="stepper-label">${STAT_LABELS[f]}</span>
@@ -418,7 +418,7 @@ function renderSettledCard(window, existing) {
 }
 
 function clampStat(v) {
-  return Math.min(10, Math.max(1, Math.round(Number(v) || 1)));
+  return Math.min(10, Math.max(0, Math.round(Number(v) || 0)));
 }
 
 function renderLeaderboard(standings) {
