@@ -543,7 +543,6 @@ function renderWindows() {
           <td class="w-label">${esc(w.label)}</td>
           <td><span class="badge badge-${status}">${status}</span></td>
           <td>${w.predictionsCount || 0}</td>
-          <td>${w.statsEntered ? "yes" : "no"}</td>
           <td>${actionButtons(w, status)}</td>
         </tr>`;
     })
@@ -571,8 +570,8 @@ function actionButtons(w, status) {
   if (status === "completed") {
     return `<button class="btn btn-small btn-primary" data-action="enter" data-order="${w.order}">Enter stats</button>`;
   }
-  // upcoming / active — locked by default for the MVP, with an explicit override.
-  return `<button class="btn btn-small btn-ghost" data-action="override" data-order="${w.order}" title="Override: enter stats early">Override</button>`;
+  // upcoming / active — locked by default for the MVP, with an explicit settle.
+  return `<button class="btn btn-small btn-ghost" data-action="override" data-order="${w.order}" title="Settle: enter stats and score early">Settle</button>`;
 }
 
 // ---------------------------------------------------------------------------
