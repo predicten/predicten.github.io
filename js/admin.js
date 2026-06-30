@@ -429,19 +429,25 @@ function actionButtons(w, status) {
 // ---------------------------------------------------------------------------
 function openStatsModal(window, override, isRecalc = false) {
   const existing = window.actualStats || {};
-  const fields = STAT_FIELDS.map(
-    (f) => `
-      <label class="field">
-        <span>${STAT_LABELS[f]}</span>
-        <input type="number" min="0" step="1" name="${f}" value="${existing[f] ?? 0}" />
-      </label>`
-  ).join("");
+  const fields = STAT_FIELDS.map((f) => {
+    const val = clampStat(existing[f]);
+    return `
+      <div class="stepper-row">
+        <span class="stepper-label">${STAT_LABELS[f]}</span>
+        <div class="stepper">
+          <button type="button" class="stepper-btn" data-step="-1" data-field="${f}" aria-label="Decrease ${STAT_LABELS[f]}">−</button>
+          <output class="stepper-value" data-stat-value="${f}">${val}</output>
+          <button type="button" class="stepper-btn" data-step="1" data-field="${f}" aria-label="Increase ${STAT_LABELS[f]}">+</button>
+        </div>
+        <input type="hidden" name="${f}" value="${val}" />
+      </div>`;
+  }).join("");
 
   el("modal-title").textContent = `${isRecalc ? "Recalculate" : "Enter stats"} — ${window.label}`;
   el("modal-body").innerHTML = `
     ${override && !isRecalc ? `<p class="warn">Override: this window is not completed yet.</p>` : ""}
     <form id="stats-form" class="stats-form">
-      ${fields}
+      <div class="stat-steppers">${fields}</div>
       <div class="modal-actions">
         <button type="submit" class="btn btn-primary">
           ${isRecalc ? "Save & recalculate" : "Save stats & score window"}
@@ -449,6 +455,20 @@ function openStatsModal(window, override, isRecalc = false) {
       </div>
     </form>`;
   openModal();
+
+  const statsForm = el("stats-form");
+  statsForm.querySelectorAll(".stepper-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const field = btn.dataset.field;
+      const step = Number(btn.dataset.step);
+      const input = statsForm.querySelector(`input[name="${field}"]`);
+      const output = statsForm.querySelector(`[data-stat-value="${field}"]`);
+      if (!input) return;
+      const next = clampStat(Number(input.value) + step);
+      input.value = next;
+      if (output) output.textContent = next;
+    });
+  });
 
   el("stats-form").addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -545,6 +565,10 @@ function toast(msg) {
   t.classList.remove("hidden");
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.add("hidden"), 3500);
+}
+
+function clampStat(v) {
+  return Math.min(10, Math.max(0, Math.round(Number(v) || 0)));
 }
 
 function err(e) {

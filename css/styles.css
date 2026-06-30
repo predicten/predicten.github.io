@@ -346,7 +346,8 @@ select, input[type="number"] {
 .summary-chip.close em { color: var(--amber); }
 .summary-chip.miss { opacity: 0.65; }
 
-.stats-form, .new-match-form {
+.stats-form { display: flex; flex-direction: column; gap: 12px; }
+.new-match-form {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
