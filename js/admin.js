@@ -450,7 +450,7 @@ function openStatsModal(window, override, isRecalc = false) {
       <input type="text" id="espn-url" class="espn-input" placeholder="ESPN game URL or ID" value="${esc(state.match?.espnGameId || lastEspnGameId || "")}" />
       <button type="button" id="espn-fetch-btn" class="btn btn-ghost">Fetch from ESPN</button>
     </div>
-    <p class="muted espn-note">Auto-fills this window from ESPN match commentary. Review the numbers, then confirm by saving. Goals, cards and corners are reliable; fouls and shots on goal are approximate.</p>
+    <p class="muted espn-note">Pulls the cumulative ESPN match totals and subtracts what's already been settled in earlier windows, so this window gets the difference. Fetch progressively as the match plays. Review the numbers, then confirm by saving.</p>
     <form id="stats-form" class="stats-form">
       <div class="stat-steppers">${fields}</div>
       <div class="modal-actions">
@@ -491,9 +491,10 @@ function openStatsModal(window, override, isRecalc = false) {
     btn.disabled = true;
     btn.textContent = "Fetching…";
     try {
-      const stats = await fetchEspnWindowStats(gameId, window.order);
-      STAT_FIELDS.forEach((f) => setStat(f, stats[f]));
-      toast(`Filled ${window.label} from ESPN — review, then save to settle.`);
+      const totals = await fetchEspnMatchTotals(gameId);
+      const prior = sumPreviousWindowStats(window.order);
+      STAT_FIELDS.forEach((f) => setStat(f, (totals[f] || 0) - (prior[f] || 0)));
+      toast(`Filled ${window.label} from ESPN (match total − earlier windows). Review, then save.`);
     } catch (e) {
       toast(err(e));
     } finally {
@@ -617,59 +618,45 @@ function parseEspnGameId(input) {
   return anyNum ? anyNum[1] : null;
 }
 
-// Map an ESPN clock string ("7'", "45'+2'", "90'+3'") to a fixed window order.
-function espnMinuteToWindowOrder(displayValue) {
-  if (!displayValue) return null;
-  const s = String(displayValue).trim();
-  const base = parseInt(s, 10);
-  if (!Number.isFinite(base)) return null;
-  const stoppage = s.includes("+");
-  if (stoppage) {
-    if (base >= 90) return 9; // second-half stoppage -> 85:00–FT
-    if (base >= 45) return 4; // first-half stoppage -> 40:00–HT
-    return null;
-  }
-  if (base <= 10) return 0;
-  if (base <= 20) return 1;
-  if (base <= 30) return 2;
-  if (base <= 40) return 3;
-  if (base <= 45) return 4;
-  if (base <= 55) return 5;
-  if (base <= 65) return 6;
-  if (base <= 75) return 7;
-  if (base <= 85) return 8;
-  return 9;
-}
-
-async function fetchEspnWindowStats(gameId, order) {
+// Cumulative match totals (both teams combined) from ESPN's boxscore + scoreline.
+async function fetchEspnMatchTotals(gameId) {
   const url = `https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/summary?event=${gameId}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`ESPN responded ${res.status}.`);
   const data = await res.json();
 
-  const stats = { goals: 0, shotsOnGoal: 0, corners: 0, fouls: 0, cards: 0 };
-
-  // Goals + cards come from keyEvents (reliable minute + type).
-  (data.keyEvents || []).forEach((e) => {
-    if (espnMinuteToWindowOrder(e.clock?.displayValue) !== order) return;
-    const type = (e.type?.text || "").toLowerCase();
-    if (e.scoringPlay) {
-      stats.goals += 1;
-      stats.shotsOnGoal += 1; // a goal is a shot on target
-    }
-    if (type.includes("yellow card") || type.includes("red card")) stats.cards += 1;
+  const totals = { goals: 0, shotsOnGoal: 0, corners: 0, fouls: 0, cards: 0 };
+  const statMap = {
+    foulsCommitted: "fouls",
+    wonCorners: "corners",
+    shotsOnTarget: "shotsOnGoal",
+    yellowCards: "cards",
+    redCards: "cards",
+  };
+  (data.boxscore?.teams || []).forEach((team) => {
+    (team.statistics || []).forEach((s) => {
+      const key = statMap[s.name];
+      if (key) totals[key] += Number(s.displayValue) || 0;
+    });
   });
-
-  // Corners, fouls, shots on target parsed from timestamped commentary.
-  (data.commentary || []).forEach((c) => {
-    if (espnMinuteToWindowOrder(c.time?.displayValue) !== order) return;
-    const tx = (c.text || "").toLowerCase();
-    if (/\bcorner\b/.test(tx)) stats.corners += 1;
-    if (/\bfoul by\b/.test(tx)) stats.fouls += 1;
-    if (tx.includes("attempt saved")) stats.shotsOnGoal += 1;
+  // Goals come from the scoreline.
+  const comp = data.header?.competitions?.[0];
+  (comp?.competitors || []).forEach((c) => {
+    totals.goals += Number(c.score) || 0;
   });
+  return totals;
+}
 
-  return stats;
+// Sum the actual stats already settled in windows before `currentOrder`.
+function sumPreviousWindowStats(currentOrder) {
+  const sum = { goals: 0, shotsOnGoal: 0, corners: 0, fouls: 0, cards: 0 };
+  state.windows.forEach((w) => {
+    if (w.order >= currentOrder || !w.actualStats) return;
+    STAT_FIELDS.forEach((f) => {
+      sum[f] += Number(w.actualStats[f]) || 0;
+    });
+  });
+  return sum;
 }
 
 function err(e) {
