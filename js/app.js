@@ -42,6 +42,7 @@ el("login-btn").addEventListener("click", async () => {
   }
 });
 el("logout-btn").addEventListener("click", () => logout());
+el("share-btn").addEventListener("click", shareGame);
 initAutoHideHeader();
 initMobilePanelTabs();
 
@@ -61,8 +62,47 @@ watchAuth((user) => {
     el("app-view").classList.add("hidden");
     el("logout-btn").classList.add("hidden");
     el("user-chip").classList.add("hidden");
+    el("share-btn").classList.add("hidden");
   }
 });
+
+// ---------------------------------------------------------------------------
+// Shareable game link
+// ---------------------------------------------------------------------------
+function gameUrl(matchId = state.matchId) {
+  const u = new URL(location.href);
+  u.hash = "";
+  if (matchId) u.searchParams.set("match", matchId);
+  return u.toString();
+}
+
+async function shareGame() {
+  if (!state.matchId) {
+    toast("Pick a match to share.");
+    return;
+  }
+  const url = gameUrl();
+  const name = state.match?.name || "this match";
+  const shareData = {
+    title: "PredicTen",
+    text: `Join my PredicTen group and predict ${name}!`,
+    url,
+  };
+  try {
+    if (navigator.share) {
+      await navigator.share(shareData);
+      return;
+    }
+  } catch (e) {
+    if (e && e.name === "AbortError") return; // user dismissed the share sheet
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    toast("Game link copied — share it with your group.");
+  } catch {
+    toast(`Share this link: ${url}`);
+  }
+}
 
 function initMobilePanelTabs() {
   const grid = document.querySelector(".grid");
@@ -179,6 +219,8 @@ function initMatches() {
 function selectMatch(matchId) {
   state.matchId = matchId;
   state.myPredictions = {};
+  history.replaceState(null, "", gameUrl(matchId));
+  el("share-btn").classList.remove("hidden");
   Object.values(state.unsub).forEach((fn) => fn && fn());
 
   state.unsub.match = watchMatch(matchId, (match) => {
