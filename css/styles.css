@@ -371,11 +371,17 @@ select, input[type="number"] {
 }
 .summary-chip b { color: var(--muted); font-weight: 600; }
 .summary-chip em { font-style: normal; font-weight: 800; color: var(--text); }
+.chip-vals { display: inline-flex; align-items: center; gap: 4px; }
+.chip-vals .mine { color: var(--muted); font-weight: 700; }
+.chip-vals .vs { color: var(--muted); font-size: 11px; }
+.chip-vals .real { color: var(--text); }
+.hit-check { color: var(--green); font-weight: 900; }
 .summary-chip.exact { border-color: rgba(46, 204, 113, 0.45); background: rgba(46, 204, 113, 0.12); }
-.summary-chip.exact em { color: var(--green); }
+.summary-chip.exact .real { color: var(--green); }
 .summary-chip.close { border-color: rgba(241, 196, 15, 0.4); background: rgba(241, 196, 15, 0.12); }
-.summary-chip.close em { color: var(--amber); }
-.summary-chip.miss { opacity: 0.65; }
+.summary-chip.close .real { color: var(--amber); }
+.summary-chip.miss .real { color: var(--text); }
+.summary-chip.miss { opacity: 0.8; }
 
 .stats-form { display: flex; flex-direction: column; gap: 12px; }
 .new-match-form {

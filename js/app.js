@@ -426,25 +426,38 @@ function renderSettledCard(window, existing) {
       ${existing && existing.scored ? `<span class="prediction-points">${existing.points || 0} pts</span>` : ""}
     </div>`;
 
+  const actual = window.actualStats || {};
+
   if (!existing) {
+    const actualChips = STAT_FIELDS.map((f) => `
+      <span class="summary-chip">
+        <b>${STAT_LABELS[f]}</b>
+        <span class="chip-vals"><em class="real">${actual[f] ?? "–"}</em></span>
+      </span>`).join("");
     return `
       <div class="prediction-card settled" data-window-order="${window.order}">
         ${head}
-        <p class="muted no-pick">No prediction made for this window.</p>
+        <p class="muted no-pick">You didn't predict this window — here's the actual result.</p>
+        <div class="stat-summary">${actualChips}</div>
       </div>`;
   }
 
   const chips = STAT_FIELDS.map((f) => {
-    const val = existing.payload?.[f] ?? "–";
+    const mine = existing.payload?.[f] ?? "–";
+    const real = actual[f] ?? "–";
     const pts = existing.breakdown?.[f];
     let tone = "";
     if (existing.scored && pts != null) {
       tone = pts <= 0 ? "miss" : pts >= SCORING[f].exact ? "exact" : "close";
     }
+    // On an exact hit your pick == actual, so collapse to one number + a check.
+    const vals = tone === "exact"
+      ? `<em class="real">${real}</em><span class="hit-check" aria-label="exact">✓</span>`
+      : `<em class="mine" title="Your pick">${mine}</em><span class="vs">→</span><em class="real" title="Actual">${real}</em>`;
     return `
       <span class="summary-chip ${tone}">
         <b>${STAT_LABELS[f]}</b>
-        <em>${val}</em>
+        <span class="chip-vals">${vals}</span>
       </span>`;
   }).join("");
 
