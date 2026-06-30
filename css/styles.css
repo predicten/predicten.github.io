@@ -387,6 +387,33 @@ select, input[type="number"] {
 .summary-chip.miss .real { color: var(--text); }
 .summary-chip.miss { opacity: 0.8; }
 
+.match-share {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-2);
+}
+.match-share-label { color: var(--muted); font-size: 13px; white-space: nowrap; }
+.match-share-url {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.match-share .btn { flex: 0 0 auto; white-space: nowrap; }
+@media (max-width: 640px) {
+  .match-share { flex-wrap: wrap; }
+  .match-share-url { flex-basis: 100%; order: 3; }
+}
 .espn-fetch { display: flex; gap: 8px; align-items: center; }
 .espn-input {
   flex: 1;

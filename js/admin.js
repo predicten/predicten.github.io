@@ -121,6 +121,7 @@ function initMatches() {
       state.matchId = null;
       state.matches = [];
       el("windows-tbody").innerHTML = "";
+      updateMatchShare();
       return;
     }
     const next =
@@ -128,6 +129,7 @@ function initMatches() {
       matches[0].id;
     select.value = next;
     if (next !== state.matchId) selectMatch(next);
+    updateMatchShare();
   });
 
   select.addEventListener("change", (e) => selectMatch(e.target.value));
@@ -136,8 +138,38 @@ function initMatches() {
 
   el("delete-match-btn").addEventListener("click", openRemoveMatchesModal);
 
+  el("copy-link-btn").addEventListener("click", copyPlayerLink);
+
   el("clock-back").addEventListener("click", () => stepClock(-1));
   el("clock-advance").addEventListener("click", () => stepClock(1));
+}
+
+function playerGameUrl(matchId) {
+  const u = new URL("index.html", location.href);
+  u.searchParams.set("match", matchId);
+  return u.toString();
+}
+
+function updateMatchShare() {
+  const share = el("match-share");
+  if (!state.matchId) {
+    share.classList.add("hidden");
+    return;
+  }
+  el("match-share-url").value = playerGameUrl(state.matchId);
+  share.classList.remove("hidden");
+}
+
+async function copyPlayerLink() {
+  if (!state.matchId) return;
+  const url = playerGameUrl(state.matchId);
+  try {
+    await navigator.clipboard.writeText(url);
+    toast("Player link copied — share it with the group.");
+  } catch {
+    el("match-share-url").select();
+    toast(`Share this link: ${url}`);
+  }
 }
 
 function openNewMatchModal() {
@@ -281,6 +313,7 @@ function openRemoveMatchesModal() {
 
 function selectMatch(matchId) {
   state.matchId = matchId;
+  updateMatchShare();
   Object.values(state.unsub).forEach((fn) => fn && fn());
 
   state.unsub.match = watchMatch(matchId, (match) => {
