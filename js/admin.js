@@ -1,6 +1,16 @@
 // Admin console: manage the match clock, view the fixed window list, enter
 // actual stats for completed windows, and settle / recalculate scoring.
-import { isAdmin, loginWithGoogle, logout, watchAuth } from "./auth.js";
+import {
+  addAdmin,
+  isAdmin,
+  isKnownAdmin,
+  isSuperAdmin,
+  loginWithGoogle,
+  logout,
+  removeAdmin,
+  watchAdmins,
+  watchAuth,
+} from "./auth.js";
 import {
   createMatch,
   deleteMatch,
@@ -27,7 +37,10 @@ const state = {
   match: null,
   matches: [],
   windows: [],
-  unsub: { match: null, windows: null },
+  admins: [],
+  adminsLoaded: false,
+  initialized: false,
+  unsub: { match: null, windows: null, admins: null },
 };
 
 const CLOCK_STATES = [
@@ -52,6 +65,7 @@ const CLOCK_STATES = [
 el("login-btn").addEventListener("click", () => loginWithGoogle().catch((e) => toast(err(e))));
 el("logout-btn").addEventListener("click", () => logout());
 el("denied-logout").addEventListener("click", () => logout());
+el("add-admin-form").addEventListener("submit", onAddAdmin);
 initAutoHideHeader();
 
 watchAuth((user) => {
@@ -59,24 +73,117 @@ watchAuth((user) => {
   hide("login-view");
   hide("denied-view");
   hide("admin-view");
+  hide("manage-admins");
   hide("logout-btn");
   hide("user-chip");
+
+  if (state.unsub.admins) {
+    state.unsub.admins();
+    state.unsub.admins = null;
+  }
+  state.adminsLoaded = false;
 
   if (!user) {
     show("login-view");
     return;
   }
-  el("user-chip").textContent = user.displayName || user.email;
+  el("user-chip").textContent =
+    (user.displayName || user.email) + (isSuperAdmin(user) ? " (super admin)" : "");
   show("user-chip");
   show("logout-btn");
 
+  // Track the dynamic admin list: needed both to evaluate non-code admins and
+  // to populate the manage-admins panel for the super admin.
+  state.unsub.admins = watchAdmins((list) => {
+    state.admins = list;
+    state.adminsLoaded = true;
+    renderAdmins();
+    applyGate();
+  });
+
+  applyGate();
+});
+
+// Decide which view to show. Code-known admins (super + bootstrap) can enter
+// immediately; everyone else waits until the admin list has loaded so we don't
+// flash "not authorized" at a legitimate subgroup admin.
+function applyGate() {
+  const user = state.user;
+  if (!user) return;
+  if (!isKnownAdmin(user) && !state.adminsLoaded) return;
+
   if (!isAdmin(user)) {
+    hide("admin-view");
+    hide("manage-admins");
     show("denied-view");
     return;
   }
+  hide("denied-view");
   show("admin-view");
+  if (isSuperAdmin(user)) show("manage-admins");
+  else hide("manage-admins");
+  enterAdmin();
+}
+
+function enterAdmin() {
+  if (state.initialized) return;
+  state.initialized = true;
   initMatches();
-});
+}
+
+// ---------------------------------------------------------------------------
+// Subgroup admins (super admin only)
+// ---------------------------------------------------------------------------
+async function onAddAdmin(e) {
+  e.preventDefault();
+  const input = el("admin-email");
+  const email = (input.value || "").trim().toLowerCase();
+  if (!email) return;
+  if (isSuperAdmin({ email })) {
+    toast("That account is already a super admin.");
+    return;
+  }
+  try {
+    await addAdmin(email, state.user);
+    input.value = "";
+    toast(`${email} can now create matches and invite players.`);
+  } catch (e2) {
+    toast(err(e2));
+  }
+}
+
+function renderAdmins() {
+  const list = el("admin-list");
+  if (!list) return;
+  if (!state.admins.length) {
+    list.innerHTML = `<li class="admin-empty muted">No subgroup admins yet.</li>`;
+    return;
+  }
+  list.innerHTML = state.admins
+    .slice()
+    .sort((a, b) => (a.email || a.id || "").localeCompare(b.email || b.id || ""))
+    .map((a) => {
+      const email = a.email || a.id;
+      return `
+        <li class="admin-row">
+          <span class="admin-email">${esc(email)}</span>
+          <button class="btn btn-ghost remove-admin" data-email="${esc(email)}">Remove</button>
+        </li>`;
+    })
+    .join("");
+
+  list.querySelectorAll(".remove-admin").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const email = btn.dataset.email;
+      try {
+        await removeAdmin(email);
+        toast(`Removed ${email}.`);
+      } catch (e2) {
+        toast(err(e2));
+      }
+    });
+  });
+}
 
 function initAutoHideHeader() {
   const topbar = document.querySelector(".topbar");
@@ -112,7 +219,11 @@ function initAutoHideHeader() {
 // ---------------------------------------------------------------------------
 function initMatches() {
   const select = el("match-select");
-  watchMatches((matches) => {
+  watchMatches((allMatches) => {
+    // Super admin manages every match; subgroup admins only see their own.
+    const matches = isSuperAdmin(state.user)
+      ? allMatches
+      : allMatches.filter((m) => m.createdBy === state.user.uid);
     state.matches = matches;
     select.innerHTML = matches
       .map((m) => `<option value="${m.id}">${esc(m.name)}</option>`)

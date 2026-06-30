@@ -9,10 +9,16 @@ export const firebaseConfig = {
   measurementId: "G-Q68F6RFRFH",
 };
 
-// Emails allowed to use the admin console. Anyone signed in with one of these
-// Google accounts can enter stats / settle windows. (Also enforce in
-// firestore.rules for real security — see firestore.rules.)
-export const ADMIN_EMAILS = [
+// Super admins can do everything, including creating/removing subgroup admins
+// from the admin console. Keep this list tiny. (Also enforced in firestore.rules.)
+export const SUPER_ADMIN_EMAILS = [
   "jue.george@gmail.com",
+];
+
+// Permanent admins baked into the app, in addition to the dynamic subgroup
+// admins a super admin creates from the console (stored in the `admins`
+// collection). These can create matches and invite players, but cannot manage
+// other admins. (Also enforced in firestore.rules.)
+export const BOOTSTRAP_ADMIN_EMAILS = [
   "binoybt@gmail.com",
 ];

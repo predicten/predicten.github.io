@@ -46,15 +46,14 @@
 
     <!-- Signed in -->
     <main id="app-view" class="app-view hidden">
-      <div class="match-picker">
-        <label for="match-select">Match</label>
-        <select id="match-select"></select>
+      <div class="match-header">
+        <span id="match-name" class="match-name"></span>
         <span id="match-clock" class="clock"></span>
       </div>
 
-      <div id="no-matches" class="empty hidden">
-        No matches yet. Ask an admin to create one in the
-        <a class="link" href="admin.html">admin console</a>.
+      <div id="no-match" class="empty hidden">
+        No game selected. Open the link your group organizer shared to join and
+        start predicting.
       </div>
 
       <nav class="mobile-panel-tabs" aria-label="Match sections">

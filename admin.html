@@ -32,8 +32,8 @@
       <div class="login-card">
         <h1>Not authorized</h1>
         <p class="muted">
-          This account is not an admin. Add your email to <code>ADMIN_EMAILS</code>
-          in <code>js/config.js</code>.
+          This account isn't a PredicTen admin. Ask the super admin to add your
+          email as a subgroup admin.
         </p>
         <button id="denied-logout" class="btn btn-ghost">Sign out</button>
       </div>
@@ -84,6 +84,20 @@
             <tbody id="windows-tbody"></tbody>
           </table>
         </div>
+      </section>
+
+      <section id="manage-admins" class="panel hidden">
+        <h2>Subgroup admins</h2>
+        <p class="muted">
+          Add people who can create matches and invite players. They can't manage
+          other admins.
+        </p>
+        <form id="add-admin-form" class="add-admin-form">
+          <input id="admin-email" class="admin-email-input" type="email"
+                 placeholder="name@email.com" autocomplete="off" required />
+          <button class="btn btn-primary" type="submit">Add admin</button>
+        </form>
+        <ul id="admin-list" class="admin-list"></ul>
       </section>
     </main>
 

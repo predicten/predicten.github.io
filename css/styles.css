@@ -101,6 +101,9 @@ code { background: var(--panel-2); padding: 2px 6px; border-radius: 6px; }
 .app-view { max-width: 1180px; margin: 0 auto; padding: 22px; }
 .match-picker { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .match-picker label { color: var(--muted); font-size: 14px; }
+.match-header { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+.match-name { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+.match-header .clock { color: var(--muted); font-size: 14px; }
 select, input[type="number"] {
   background: var(--panel-2);
   border: 1px solid var(--border);
@@ -414,6 +417,32 @@ select, input[type="number"] {
   .match-share { flex-wrap: wrap; }
   .match-share-url { flex-basis: 100%; order: 3; }
 }
+.add-admin-form { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 4px 0 14px; }
+.admin-email-input {
+  flex: 1;
+  min-width: 220px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 9px 11px;
+  border-radius: 9px;
+  font-size: 14px;
+}
+.admin-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.admin-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-2);
+}
+.admin-email { font-size: 14px; word-break: break-all; }
+.admin-row .remove-admin { flex: 0 0 auto; }
+.admin-empty { padding: 6px 2px; }
+
 .espn-fetch { display: flex; gap: 8px; align-items: center; }
 .espn-input {
   flex: 1;

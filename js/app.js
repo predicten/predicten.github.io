@@ -4,7 +4,6 @@ import { isAdmin, loginWithGoogle, logout, watchAuth } from "./auth.js";
 import {
   submitPredictionForFixedWindow,
   watchMatch,
-  watchMatches,
   watchPredictions,
   watchStandings,
   watchUserPredictions,
@@ -55,7 +54,7 @@ watchAuth((user) => {
     const chip = el("user-chip");
     chip.textContent = (user.displayName || user.email) + (isAdmin(user) ? " (admin)" : "");
     chip.classList.remove("hidden");
-    initMatches();
+    initMatch();
   } else {
     teardown();
     el("login-view").classList.remove("hidden");
@@ -189,31 +188,26 @@ function scrollToGridTop() {
 }
 
 // ---------------------------------------------------------------------------
-// Match selection
+// Single match (joined via shared link — players can't switch games)
 // ---------------------------------------------------------------------------
-function initMatches() {
-  const select = el("match-select");
-  watchMatches((matches) => {
-    if (!matches.length) {
-      el("no-matches").classList.remove("hidden");
-      select.innerHTML = "";
-      return;
-    }
-    el("no-matches").classList.add("hidden");
-    const current = state.matchId;
-    select.innerHTML = matches
-      .map((m) => `<option value="${m.id}">${escapeHtml(m.name)}</option>`)
-      .join("");
-    const preferred = new URLSearchParams(location.search).get("match");
-    const next =
-      (current && matches.some((m) => m.id === current) && current) ||
-      (preferred && matches.some((m) => m.id === preferred) && preferred) ||
-      matches[0].id;
-    select.value = next;
-    if (next !== state.matchId) selectMatch(next);
-  });
+function initMatch() {
+  const matchId = new URLSearchParams(location.search).get("match");
+  if (!matchId) {
+    showNoMatch();
+    return;
+  }
+  el("no-match").classList.add("hidden");
+  document.querySelector(".grid").classList.remove("hidden");
+  selectMatch(matchId);
+}
 
-  select.addEventListener("change", (e) => selectMatch(e.target.value));
+function showNoMatch() {
+  teardown();
+  el("no-match").classList.remove("hidden");
+  document.querySelector(".grid").classList.add("hidden");
+  el("share-btn").classList.add("hidden");
+  el("match-name").textContent = "";
+  el("match-clock").textContent = "";
 }
 
 function selectMatch(matchId) {
@@ -224,6 +218,12 @@ function selectMatch(matchId) {
   Object.values(state.unsub).forEach((fn) => fn && fn());
 
   state.unsub.match = watchMatch(matchId, (match) => {
+    if (!match) {
+      showNoMatch();
+      toast("This game link is no longer available.");
+      return;
+    }
+    document.querySelector(".grid").classList.remove("hidden");
     state.match = match;
     renderClock();
     renderWindows();
@@ -269,6 +269,7 @@ const PERIOD_LABEL = {
 function renderClock() {
   if (!state.match) return;
   const m = state.match;
+  el("match-name").textContent = m.name || "";
   const minute =
     m.period === PERIODS.FIRST_HALF || m.period === PERIODS.SECOND_HALF
       ? `${m.matchMinute}'`
