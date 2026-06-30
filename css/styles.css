@@ -283,6 +283,37 @@ select, input[type="number"] {
 }
 .prediction-points { margin-left: auto; color: var(--green); font-weight: 800; }
 .no-pick { margin: 4px 0 0; }
+.lock-note { margin: 0 0 4px; font-size: 12px; }
+.prediction-card.locked { opacity: 0.82; }
+
+/* Next-up window: draw immediate attention before it closes */
+.prediction-card.next-up {
+  border-color: var(--amber);
+  box-shadow: 0 0 0 1px var(--amber) inset, 0 0 22px rgba(241, 196, 15, 0.18);
+}
+.next-flag {
+  margin-left: auto;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(241, 196, 15, 0.16);
+  color: var(--amber);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.next-flag + .muted { margin-left: 8px; }
+.window-row.next-up {
+  --window-accent: var(--amber);
+  border-color: var(--amber);
+  box-shadow: 0 0 0 1px var(--amber) inset, 0 12px 24px rgba(0, 0, 0, 0.18);
+}
+.meta-pill.next-pill {
+  border-color: rgba(241, 196, 15, 0.4);
+  background: rgba(241, 196, 15, 0.14);
+  color: var(--amber);
+  font-weight: 800;
+}
 
 /* Compact stepper editor */
 .predict-form { display: flex; flex-direction: column; gap: 12px; }

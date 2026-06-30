@@ -15,6 +15,7 @@ import {
   SCORING,
   STAT_FIELDS,
   STAT_LABELS,
+  getNextFixedPredictionWindow,
   getWindowStatus,
 } from "./windows.js";
 
@@ -239,14 +240,16 @@ function renderWindows() {
     list.innerHTML = "";
     return;
   }
+  const nextOrder = nextPredictableOrder();
   list.innerHTML = state.windows
     .map((w) => {
       const status = getWindowStatus(w, state.match);
-      const editable = status !== "settled";
+      const open = status === "upcoming";
+      const isNext = open && w.order === nextOrder;
       const mine = state.myPredictions[w.order];
       const leader = status === "settled" ? getWindowLeader(w.order) : null;
       return `
-        <li class="window-row status-${status} ${editable ? "predictable" : ""}" data-window-order="${w.order}" role="button" tabindex="0" title="Open prediction card">
+        <li class="window-row status-${status} ${open ? "predictable" : ""} ${isNext ? "next-up" : ""}" data-window-order="${w.order}" role="button" tabindex="0" title="Open prediction card">
           <div class="window-card-content">
             <div class="window-main">
               <span>
@@ -255,9 +258,10 @@ function renderWindows() {
               <span class="badge badge-${status}">${status}</span>
             </div>
             <div class="window-meta">
+              ${isNext ? `<span class="meta-pill next-pill">Predict now</span>` : ""}
               <span class="meta-pill">${w.predictionsCount || 0} predictions</span>
               ${mine ? `<span class="meta-pill mine">${mine.scored ? `You earned ${mine.points} pts` : "Your pick is in"}</span>` : ""}
-              ${editable ? `<span class="open-tag" title="Editable" aria-label="Editable">✎</span>` : ""}
+              ${open ? `<span class="open-tag" title="Editable" aria-label="Editable">✎</span>` : ""}
             </div>
             ${leader ? `<div class="window-leader"><span>Window Leader</span><strong>${escapeHtml(leader.displayName)}</strong><em>${leader.points} pts</em></div>` : ""}
           </div>
@@ -276,6 +280,12 @@ function renderWindows() {
       }
     });
   });
+}
+
+function nextPredictableOrder() {
+  if (!state.match) return null;
+  const next = getNextFixedPredictionWindow(state.match.matchMinute ?? 0, state.match.period ?? PERIODS.PRE);
+  return next ? next.order : null;
 }
 
 function getWindowLeader(windowOrder) {
@@ -309,7 +319,7 @@ function renderPredictArea() {
   }
   area.innerHTML = `
     <p class="predict-target">
-      Settle your predictions. Tap − / + to set each stat, then submit or update any unsettled window.
+      Predict upcoming windows — each closes the moment it kicks off. The highlighted window is next up.
     </p>
     <div class="prediction-stack">
       ${state.windows.map(renderPredictionForm).join("")}
@@ -352,6 +362,12 @@ function renderPredictionForm(window) {
     return renderSettledCard(window, existing);
   }
 
+  // Once a window goes live (active) or has ended (completed), predictions close.
+  if (status !== "upcoming") {
+    return renderLockedCard(window, existing, status);
+  }
+
+  const isNext = window.order === nextPredictableOrder();
   const fields = STAT_FIELDS.map((f) => {
     const val = clampStat(existing ? existing.payload?.[f] : 0);
     return `
@@ -367,10 +383,11 @@ function renderPredictionForm(window) {
   }).join("");
 
   return `
-    <form class="predict-form prediction-card" data-window-order="${window.order}">
+    <form class="predict-form prediction-card ${isNext ? "next-up" : ""}" data-window-order="${window.order}">
       <div class="prediction-card-head">
         <strong>${escapeHtml(window.label)}</strong>
         <span class="badge badge-${status}">${status}</span>
+        ${isNext ? `<span class="next-flag">Closing next — predict now</span>` : ""}
         ${existing ? `<span class="muted">submitted</span>` : ""}
       </div>
       <div class="stat-steppers">${fields}</div>
@@ -378,6 +395,27 @@ function renderPredictionForm(window) {
         ${existing ? "Update prediction" : "Submit prediction"}
       </button>
     </form>`;
+}
+
+function renderLockedCard(window, existing, status) {
+  const note = status === "active"
+    ? "In play — predictions closed."
+    : "Window ended — awaiting results.";
+  const head = `
+    <div class="prediction-card-head">
+      <strong>${escapeHtml(window.label)}</strong>
+      <span class="badge badge-${status}">${status}</span>
+    </div>`;
+  const body = existing
+    ? `<div class="stat-summary">${STAT_FIELDS.map((f) => `
+        <span class="summary-chip"><b>${STAT_LABELS[f]}</b><em>${existing.payload?.[f] ?? "–"}</em></span>`).join("")}</div>`
+    : `<p class="muted no-pick">No prediction made for this window.</p>`;
+  return `
+    <div class="prediction-card locked" data-window-order="${window.order}">
+      ${head}
+      <p class="muted lock-note">${note}</p>
+      ${body}
+    </div>`;
 }
 
 function renderSettledCard(window, existing) {
