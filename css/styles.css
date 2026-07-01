@@ -637,6 +637,33 @@ select, input[type="number"] {
   font-weight: 900;
   line-height: 1;
 }
+.predictor-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.predictor-pill {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 3px 9px;
+  border: 1px solid rgba(147, 160, 189, 0.2);
+  border-radius: 999px;
+  background: rgba(11, 16, 32, 0.32);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.predictor-pill.me {
+  border-color: rgba(79, 124, 255, 0.4);
+  background: rgba(79, 124, 255, 0.14);
+  color: #cdd8ff;
+  font-weight: 700;
+}
 .window-leader {
   display: grid;
   grid-template-columns: 1fr auto;

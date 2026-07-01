@@ -291,6 +291,12 @@ function renderWindows() {
       const isNext = open && w.order === nextOrder;
       const mine = state.myPredictions[w.order];
       const leader = status === "settled" ? getWindowLeader(w.order) : null;
+      const predictors = getPredictorNames(w.order);
+      const predictorPills = predictors.length
+        ? `<div class="predictor-pills">${predictors
+            .map((p) => `<span class="predictor-pill ${p.isMe ? "me" : ""}">${escapeHtml(p.name)}</span>`)
+            .join("")}</div>`
+        : "";
       return `
         <li class="window-row status-${status} ${open ? "predictable" : ""} ${isNext ? "next-up" : ""}" data-window-order="${w.order}" role="button" tabindex="0" title="Open prediction card">
           <div class="window-card-content">
@@ -306,6 +312,7 @@ function renderWindows() {
               ${mine ? `<span class="meta-pill mine">${mine.scored ? `You earned ${mine.points} pts` : "Your pick is in"}</span>` : ""}
               ${open ? `<span class="open-tag" title="Editable" aria-label="Editable">✎</span>` : ""}
             </div>
+            ${predictorPills}
             ${leader ? `<div class="window-leader"><span>Window Leader</span><strong>${escapeHtml(leader.displayName)}</strong><em>${leader.points} pts</em></div>` : ""}
           </div>
           <span class="window-chevron" aria-hidden="true">›</span>
@@ -329,6 +336,24 @@ function nextPredictableOrder() {
   if (!state.match) return null;
   const next = getNextFixedPredictionWindow(state.match.matchMinute ?? 0, state.match.period ?? PERIODS.PRE);
   return next ? next.order : null;
+}
+
+function getPredictorNames(windowOrder) {
+  const seen = new Set();
+  const names = [];
+  state.predictions
+    .filter((p) => p.windowOrder === windowOrder)
+    .forEach((p) => {
+      if (seen.has(p.userId)) return;
+      seen.add(p.userId);
+      names.push({
+        name: p.displayName || "Player",
+        isMe: state.user && p.userId === state.user.uid,
+      });
+    });
+  // Put the current player first for quick scanning.
+  names.sort((a, b) => (b.isMe ? 1 : 0) - (a.isMe ? 1 : 0));
+  return names;
 }
 
 function getWindowLeader(windowOrder) {
