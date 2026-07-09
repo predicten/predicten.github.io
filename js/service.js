@@ -3,7 +3,7 @@
 //
 // Data model:
 //   matches/{matchId}                         -> match + live clock (period, matchMinute)
-//   matches/{matchId}/windows/{order}         -> one doc per fixed window (order "0".."9")
+//   matches/{matchId}/windows/{order}         -> one doc per fixed window (order "0".."5")
 //   matches/{matchId}/predictions/{uid_order} -> one prediction per user per window
 //   matches/{matchId}/standings/{uid}         -> running total points per player
 //   users/{uid}                               -> profile
@@ -108,7 +108,7 @@ export async function deleteMatch(matchId, adminUser) {
   await batch.commit();
 }
 
-// Create the 10 fixed match windows for a match. Identical for every player.
+// Create the fixed match windows for a match. Identical for every player.
 export async function createFixedPredictionWindowsForMatch(matchId) {
   const batch = writeBatch(db);
   for (const w of FIXED_WINDOW_SCHEDULE) {

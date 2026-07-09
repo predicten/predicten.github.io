@@ -2,7 +2,7 @@
 
 A live football prediction game built with **vanilla JavaScript + HTML + CSS + Firebase**
 (Firestore + Google Auth). Players sign in with Google, join a live match, and predict
-what happens in any unsettled **fixed 10-minute match window**. An admin enters the actual
+what happens in any unsettled **fixed 15-minute match window**. An admin enters the actual
 stats after each window completes; scoring and the leaderboard update in realtime.
 
 > The game uses **fixed match-time windows that are identical for every player** — it does
@@ -12,16 +12,12 @@ stats after each window completes; scoring and the leaderboard update in realtim
 
 | # | Window | Notes |
 |---|--------|-------|
-| 0 | 0:00–10:00 | |
-| 1 | 10:00–20:00 | |
-| 2 | 20:00–30:00 | |
-| 3 | 30:00–40:00 | |
-| 4 | 40:00–HT | includes first-half stoppage time |
-| 5 | 45:00–55:00 | |
-| 6 | 55:00–65:00 | |
-| 7 | 65:00–75:00 | |
-| 8 | 75:00–85:00 | |
-| 9 | 85:00–FT | includes second-half stoppage time |
+| 0 | 0:00–15:00 | |
+| 1 | 15:00–30:00 | |
+| 2 | 30:00–HT | includes first-half stoppage time |
+| 3 | 45:00–60:00 | |
+| 4 | 60:00–75:00 | |
+| 5 | 75:00–FT | includes second-half stoppage time |
 
 **Prediction rule:** a user can submit or update a prediction for any fixed window that
 has not been settled yet. Once the admin enters stats and scoring is calculated, that
@@ -84,7 +80,7 @@ Then open `http://localhost:8000/` (player) and `http://localhost:8000/admin.htm
 
 ## Using it
 
-1. In the **admin console**, click **+ New match** (creates the 10 fixed windows).
+1. In the **admin console**, click **+ New match** (creates the 6 fixed windows).
 2. Use the **Match clock** slider to move the match to the latest fixed checkpoint
    (no live feed in the MVP).
 3. Players sign in on the **player page**, pick the match, and submit or update predictions

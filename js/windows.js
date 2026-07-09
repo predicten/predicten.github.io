@@ -14,19 +14,16 @@ export const PERIODS = {
 
 // The fixed window schedule. `order` is the stable id used everywhere
 // (Firestore doc id, prediction key, etc). startMin/endMin are nominal
-// match minutes; the two "open ended" windows absorb stoppage time and are
-// closed by a period transition (HALFTIME / FULLTIME) rather than a minute.
+// match minutes; the two "open ended" windows (30–HT and 75–FT) absorb
+// stoppage time and are closed by a period transition (HALFTIME / FULLTIME)
+// rather than a minute.
 export const FIXED_WINDOW_SCHEDULE = [
-  { order: 0, key: "0-10", label: "0:00–10:00", period: PERIODS.FIRST_HALF, startMin: 0, endMin: 10 },
-  { order: 1, key: "10-20", label: "10:00–20:00", period: PERIODS.FIRST_HALF, startMin: 10, endMin: 20 },
-  { order: 2, key: "20-30", label: "20:00–30:00", period: PERIODS.FIRST_HALF, startMin: 20, endMin: 30 },
-  { order: 3, key: "30-40", label: "30:00–40:00", period: PERIODS.FIRST_HALF, startMin: 30, endMin: 40 },
-  { order: 4, key: "40-HT", label: "40:00–HT", period: PERIODS.FIRST_HALF, startMin: 40, endMin: 45 },
-  { order: 5, key: "45-55", label: "45:00–55:00", period: PERIODS.SECOND_HALF, startMin: 45, endMin: 55 },
-  { order: 6, key: "55-65", label: "55:00–65:00", period: PERIODS.SECOND_HALF, startMin: 55, endMin: 65 },
-  { order: 7, key: "65-75", label: "65:00–75:00", period: PERIODS.SECOND_HALF, startMin: 65, endMin: 75 },
-  { order: 8, key: "75-85", label: "75:00–85:00", period: PERIODS.SECOND_HALF, startMin: 75, endMin: 85 },
-  { order: 9, key: "85-FT", label: "85:00–FT", period: PERIODS.SECOND_HALF, startMin: 85, endMin: 90 },
+  { order: 0, key: "0-15", label: "0:00–15:00", period: PERIODS.FIRST_HALF, startMin: 0, endMin: 15 },
+  { order: 1, key: "15-30", label: "15:00–30:00", period: PERIODS.FIRST_HALF, startMin: 15, endMin: 30 },
+  { order: 2, key: "30-HT", label: "30:00–HT", period: PERIODS.FIRST_HALF, startMin: 30, endMin: 45 },
+  { order: 3, key: "45-60", label: "45:00–60:00", period: PERIODS.SECOND_HALF, startMin: 45, endMin: 60 },
+  { order: 4, key: "60-75", label: "60:00–75:00", period: PERIODS.SECOND_HALF, startMin: 60, endMin: 75 },
+  { order: 5, key: "75-FT", label: "75:00–FT", period: PERIODS.SECOND_HALF, startMin: 75, endMin: 90 },
 ];
 
 export const WINDOW_COUNT = FIXED_WINDOW_SCHEDULE.length;
@@ -51,30 +48,36 @@ export const SCORING = {
   cards: { exact: 5, close: 2 },
 };
 
-const FIRST_HALF_THRESHOLDS = [10, 20, 30, 40];
-const SECOND_HALF_THRESHOLDS = [55, 65, 75, 85];
+const FIRST_HALF_THRESHOLDS = [15, 30];
+const SECOND_HALF_THRESHOLDS = [60, 75];
+
+// Number of first-half windows (orders 0..2). Second-half windows start after these.
+const FIRST_HALF_WINDOW_COUNT = FIXED_WINDOW_SCHEDULE.filter(
+  (w) => w.period === PERIODS.FIRST_HALF
+).length;
 
 function countAtOrPast(thresholds, minute) {
   return thresholds.filter((t) => minute >= t).length;
 }
 
 // Number of windows that have fully ended (and are therefore "completed" or later).
-// Windows 4 (40–HT) and 9 (85–FT) only complete on the HALFTIME / FULLTIME transition,
-// never on a raw minute, so stoppage time stays inside them.
+// The last window of each half (30–HT and 75–FT) only completes on the
+// HALFTIME / FULLTIME transition, never on a raw minute, so stoppage time
+// stays inside them.
 export function getCompletedCount(period, matchMinute = 0) {
   switch (period) {
     case PERIODS.PRE:
       return 0;
     case PERIODS.FIRST_HALF:
-      // windows 0..3 close at 10/20/30/40; window 4 stays active through stoppage.
-      return countAtOrPast(FIRST_HALF_THRESHOLDS, matchMinute); // 0..4
+      // windows 0..1 close at 15/30; window 2 stays active through stoppage.
+      return countAtOrPast(FIRST_HALF_THRESHOLDS, matchMinute); // 0..2
     case PERIODS.HALFTIME:
-      return 5; // all first-half windows (0..4) complete
+      return FIRST_HALF_WINDOW_COUNT; // all first-half windows complete
     case PERIODS.SECOND_HALF:
-      // windows 5..8 close at 55/65/75/85; window 9 stays active through stoppage.
-      return 5 + countAtOrPast(SECOND_HALF_THRESHOLDS, matchMinute); // 5..9
+      // windows 3..4 close at 60/75; window 5 stays active through stoppage.
+      return FIRST_HALF_WINDOW_COUNT + countAtOrPast(SECOND_HALF_THRESHOLDS, matchMinute);
     case PERIODS.FULLTIME:
-      return WINDOW_COUNT; // 10 — everything has ended
+      return WINDOW_COUNT; // everything has ended
     default:
       return 0;
   }
@@ -107,7 +110,7 @@ function getNextPredictableIndex(period, matchMinute = 0) {
       idx = getActiveIndex(period, matchMinute) + 1; // predict the one after the active window
       break;
     case PERIODS.HALFTIME:
-      idx = 5; // 45:00–55:00
+      idx = FIRST_HALF_WINDOW_COUNT; // first second-half window (45:00–60:00)
       break;
     case PERIODS.SECOND_HALF:
       idx = getActiveIndex(period, matchMinute) + 1;

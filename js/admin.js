@@ -26,6 +26,7 @@ import {
   PERIODS,
   STAT_FIELDS,
   STAT_LABELS,
+  WINDOW_COUNT,
   getWindowStatus,
 } from "./windows.js";
 
@@ -46,16 +47,12 @@ const state = {
 const CLOCK_STATES = [
   { label: "Pre-match", period: PERIODS.PRE, matchMinute: 0 },
   { label: "0:00", period: PERIODS.FIRST_HALF, matchMinute: 0 },
-  { label: "10:00", period: PERIODS.FIRST_HALF, matchMinute: 10 },
-  { label: "20:00", period: PERIODS.FIRST_HALF, matchMinute: 20 },
+  { label: "15:00", period: PERIODS.FIRST_HALF, matchMinute: 15 },
   { label: "30:00", period: PERIODS.FIRST_HALF, matchMinute: 30 },
-  { label: "40:00", period: PERIODS.FIRST_HALF, matchMinute: 40 },
   { label: "HT", period: PERIODS.HALFTIME, matchMinute: 45 },
   { label: "45:00", period: PERIODS.SECOND_HALF, matchMinute: 45 },
-  { label: "55:00", period: PERIODS.SECOND_HALF, matchMinute: 55 },
-  { label: "65:00", period: PERIODS.SECOND_HALF, matchMinute: 65 },
+  { label: "60:00", period: PERIODS.SECOND_HALF, matchMinute: 60 },
   { label: "75:00", period: PERIODS.SECOND_HALF, matchMinute: 75 },
-  { label: "85:00", period: PERIODS.SECOND_HALF, matchMinute: 85 },
   { label: "FT", period: PERIODS.FULLTIME, matchMinute: 90 },
 ];
 
@@ -344,7 +341,7 @@ function openNewMatchModal() {
       const id = await createMatch(payload, state.user);
       state.matchId = id;
       closeModal();
-      toast("Match created with 10 fixed windows.");
+      toast(`Match created with ${WINDOW_COUNT} fixed windows.`);
     } catch (e2) {
       toast(err(e2));
     }
@@ -503,24 +500,20 @@ async function saveClockIndex(index) {
 function clockStateIndexForMatch(match) {
   if (!match) return 0;
   if (match.period === PERIODS.PRE) return 0;
-  if (match.period === PERIODS.HALFTIME) return 6;
-  if (match.period === PERIODS.FULLTIME) return 12;
+  if (match.period === PERIODS.HALFTIME) return 4;
+  if (match.period === PERIODS.FULLTIME) return 8;
 
   const minute = Number(match.matchMinute) || 0;
   if (match.period === PERIODS.FIRST_HALF) {
-    if (minute < 10) return 1;
-    if (minute < 20) return 2;
-    if (minute < 30) return 3;
-    if (minute < 40) return 4;
-    return 5;
+    if (minute < 15) return 1;
+    if (minute < 30) return 2;
+    return 3;
   }
 
   if (match.period === PERIODS.SECOND_HALF) {
-    if (minute < 55) return 7;
-    if (minute < 65) return 8;
-    if (minute < 75) return 9;
-    if (minute < 85) return 10;
-    return 11;
+    if (minute < 60) return 5;
+    if (minute < 75) return 6;
+    return 7;
   }
 
   return 0;
@@ -756,7 +749,7 @@ function clampStat(v) {
 
 // ---------------------------------------------------------------------------
 // ESPN auto-fill: scrape a match's summary feed and bucket timestamped events
-// into the fixed 10-minute window being settled. Pre-fills for admin review.
+// into the fixed 15-minute window being settled. Pre-fills for admin review.
 // ---------------------------------------------------------------------------
 let lastEspnGameId = "";
 
