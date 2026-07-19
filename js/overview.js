@@ -1,7 +1,14 @@
 // Super-admin overview: list every game (subgroup) with its subgroup admin and,
 // on expand, the participants. A "Join as admin" button opens that game in the
 // admin console.
-import { isSuperAdmin, loginWithGoogle, logout, watchAuth } from "./auth.js";
+import {
+  describeAuthError,
+  isSuperAdmin,
+  loginWithGoogle,
+  logout,
+  renderSignInEnvHint,
+  watchAuth,
+} from "./auth.js";
 import { getMatchParticipants, getUser, watchMatches } from "./service.js";
 
 const el = (id) => document.getElementById(id);
@@ -15,9 +22,10 @@ const state = {
   unsub: { matches: null },
 };
 
-el("login-btn").addEventListener("click", () => loginWithGoogle().catch((e) => toast(err(e))));
+el("login-btn").addEventListener("click", () => loginWithGoogle().catch((e) => toast(describeAuthError(e))));
 el("logout-btn").addEventListener("click", () => logout());
 el("denied-logout").addEventListener("click", () => logout());
+renderSignInEnvHint();
 
 watchAuth((user) => {
   state.user = user;

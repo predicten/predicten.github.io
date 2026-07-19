@@ -96,6 +96,16 @@ code { background: var(--panel-2); padding: 2px 6px; border-radius: 6px; }
 }
 .login-card h1 { margin: 0 0 10px; font-size: 26px; }
 .login-card .btn-google { margin-top: 18px; }
+.login-card .env-hint {
+  margin: 18px 0 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel-2);
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
 
 /* App layout */
 .app-view { max-width: 1180px; margin: 0 auto; padding: 22px; }
@@ -814,6 +824,7 @@ select, input[type="number"] {
 .cast-window-list .window-label { font-size: clamp(17px, 1.7vw, 24px); }
 .cast-window-list .badge { font-size: clamp(12px, 1vw, 15px); }
 .cast-window-list .meta-pill { font-size: clamp(12px, 1vw, 15px); }
+.cast-window-list .predictor-pill { font-size: clamp(12px, 1vw, 15px); padding: 4px 11px; }
 .cast-window-list .window-leader { font-size: clamp(13px, 1.1vw, 16px); }
 
 /* Bigger leaderboard rows */

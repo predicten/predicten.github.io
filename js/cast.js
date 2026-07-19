@@ -2,10 +2,12 @@
 // leaderboard. Meant to be put fullscreen on a shared screen for viewers. Admins
 // switch here from the settling console and back via the "Settling" link.
 import {
+  describeAuthError,
   isAdmin,
   isKnownAdmin,
   loginWithGoogle,
   logout,
+  renderSignInEnvHint,
   watchAdmins,
   watchAuth,
 } from "./auth.js";
@@ -40,10 +42,11 @@ const state = {
 // ---------------------------------------------------------------------------
 // Auth gate (admins only, mirrors the admin console)
 // ---------------------------------------------------------------------------
-el("login-btn").addEventListener("click", () => loginWithGoogle().catch((e) => toast(err(e))));
+el("login-btn").addEventListener("click", () => loginWithGoogle().catch((e) => toast(describeAuthError(e))));
 el("logout-btn").addEventListener("click", () => logout());
 el("denied-logout").addEventListener("click", () => logout());
 el("fullscreen-btn").addEventListener("click", toggleFullscreen);
+renderSignInEnvHint();
 
 watchAuth((user) => {
   state.user = user;
@@ -175,6 +178,12 @@ function renderWindows() {
     .map((w) => {
       const status = getWindowStatus(w, state.match);
       const leader = status === "settled" ? getWindowLeader(w.order) : null;
+      const predictors = getPredictorNames(w.order);
+      const predictorPills = predictors.length
+        ? `<div class="predictor-pills">${predictors
+            .map((name) => `<span class="predictor-pill">${escapeHtml(name)}</span>`)
+            .join("")}</div>`
+        : "";
       return `
         <li class="window-row status-${status}" data-window-order="${w.order}">
           <div class="window-card-content">
@@ -185,11 +194,25 @@ function renderWindows() {
             <div class="window-meta">
               <span class="meta-pill">${w.predictionsCount || 0} predictions</span>
             </div>
+            ${predictorPills}
             ${leader ? `<div class="window-leader"><span>Window Leader</span><strong>${escapeHtml(leader.displayName)}</strong><em>${leader.points} pts</em></div>` : ""}
           </div>
         </li>`;
     })
     .join("");
+}
+
+function getPredictorNames(windowOrder) {
+  const seen = new Set();
+  const names = [];
+  state.predictions
+    .filter((p) => p.windowOrder === windowOrder)
+    .forEach((p) => {
+      if (seen.has(p.userId)) return;
+      seen.add(p.userId);
+      names.push(p.displayName || "Player");
+    });
+  return names;
 }
 
 function getWindowLeader(windowOrder) {

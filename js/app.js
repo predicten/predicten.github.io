@@ -1,6 +1,13 @@
 // Player-facing app: sign in, pick a match, update predictions for unsettled windows,
 // watch the leaderboard update in realtime.
-import { isAdmin, loginWithGoogle, logout, watchAuth } from "./auth.js";
+import {
+  describeAuthError,
+  isAdmin,
+  loginWithGoogle,
+  logout,
+  renderSignInEnvHint,
+  watchAuth,
+} from "./auth.js";
 import {
   submitPredictionForFixedWindow,
   watchMatch,
@@ -45,6 +52,7 @@ el("login-btn").addEventListener("click", async () => {
 });
 el("logout-btn").addEventListener("click", () => logout());
 el("share-btn").addEventListener("click", shareGame);
+renderSignInEnvHint();
 initAutoHideHeader();
 initMobilePanelTabs();
 
@@ -581,8 +589,7 @@ function toast(msg) {
 }
 
 function friendlyError(e) {
-  if (e && e.code === "auth/popup-closed-by-user") return "Sign-in cancelled.";
-  return (e && e.message) || "Something went wrong.";
+  return describeAuthError(e);
 }
 
 function escapeHtml(s) {

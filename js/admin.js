@@ -2,12 +2,14 @@
 // actual stats for completed windows, and settle / recalculate scoring.
 import {
   addAdmin,
+  describeAuthError,
   isAdmin,
   isKnownAdmin,
   isSuperAdmin,
   loginWithGoogle,
   logout,
   removeAdmin,
+  renderSignInEnvHint,
   watchAdmins,
   watchAuth,
 } from "./auth.js";
@@ -54,10 +56,11 @@ function clockStates() {
 // ---------------------------------------------------------------------------
 // Auth
 // ---------------------------------------------------------------------------
-el("login-btn").addEventListener("click", () => loginWithGoogle().catch((e) => toast(err(e))));
+el("login-btn").addEventListener("click", () => loginWithGoogle().catch((e) => toast(describeAuthError(e))));
 el("logout-btn").addEventListener("click", () => logout());
 el("denied-logout").addEventListener("click", () => logout());
 el("add-admin-form").addEventListener("submit", onAddAdmin);
+renderSignInEnvHint();
 initAutoHideHeader();
 
 watchAuth((user) => {
