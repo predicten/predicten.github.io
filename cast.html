@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PredicTen — Cast to TV</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body class="cast-body">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-dot admin"></span>
+        <span class="brand-full">PredicTen Cast</span>
+        <span class="brand-short">PT</span>
+      </div>
+      <nav class="topbar-actions">
+        <a id="settle-link" class="btn btn-ghost hidden" href="admin.html">‹ Settling</a>
+        <button id="fullscreen-btn" class="btn btn-ghost hidden" type="button">Fullscreen</button>
+        <span id="user-chip" class="user-chip hidden"></span>
+        <button id="logout-btn" class="btn btn-ghost hidden">Sign out</button>
+      </nav>
+    </header>
+
+    <section id="login-view" class="login-view hidden">
+      <div class="login-card">
+        <h1>Admin sign in</h1>
+        <p class="muted">Sign in with an authorized Google account to cast a match.</p>
+        <button id="login-btn" class="btn btn-google"><span class="g">G</span> Sign in with Google</button>
+      </div>
+    </section>
+
+    <section id="denied-view" class="login-view hidden">
+      <div class="login-card">
+        <h1>Not authorized</h1>
+        <p class="muted">This account isn't a PredicTen admin.</p>
+        <button id="denied-logout" class="btn btn-ghost">Sign out</button>
+      </div>
+    </section>
+
+    <main id="cast-view" class="cast-view hidden">
+      <div id="no-match" class="empty hidden">
+        No match selected. Open this page from the admin console's
+        <strong>Cast to TV</strong> button.
+      </div>
+
+      <div class="cast-header">
+        <span id="match-name" class="cast-match-name"></span>
+        <span id="match-clock" class="cast-clock"></span>
+      </div>
+
+      <div class="cast-grid">
+        <section class="panel cast-panel">
+          <h2>Match Windows</h2>
+          <ul id="window-list" class="window-list cast-window-list"></ul>
+        </section>
+
+        <section class="panel cast-panel">
+          <h2>Leaderboard</h2>
+          <ol id="leaderboard" class="leaderboard cast-leaderboard"></ol>
+        </section>
+      </div>
+    </main>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <script type="module" src="js/cast.js"></script>
+  </body>
+</html>

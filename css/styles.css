@@ -790,3 +790,39 @@ select, input[type="number"] {
   padding: 12px 18px; border-radius: 12px; box-shadow: var(--shadow); z-index: 100;
   max-width: 90vw;
 }
+
+/* ---------------------------------------------------------------------------
+   Cast to TV view — large, read-only board for a shared screen
+--------------------------------------------------------------------------- */
+.cast-view { max-width: 1600px; margin: 0 auto; padding: 24px clamp(16px, 3vw, 48px) 48px; }
+.cast-header {
+  display: flex; align-items: baseline; justify-content: center; gap: 18px;
+  flex-wrap: wrap; text-align: center; margin: 6px 0 26px;
+}
+.cast-match-name { font-size: clamp(28px, 4vw, 52px); font-weight: 800; letter-spacing: -0.5px; }
+.cast-clock {
+  font-size: clamp(16px, 1.8vw, 26px); font-weight: 700; color: #fff;
+  background: var(--primary); padding: 6px 18px; border-radius: 999px;
+}
+.cast-grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: clamp(16px, 2.5vw, 34px); align-items: start; }
+@media (max-width: 900px) { .cast-grid { grid-template-columns: 1fr; } }
+.cast-panel { padding: clamp(16px, 2vw, 28px); }
+.cast-panel h2 { font-size: clamp(20px, 2.2vw, 30px); margin-bottom: 18px; }
+
+/* Bigger window cards for distance viewing */
+.cast-window-list { gap: 14px; }
+.cast-window-list .window-label { font-size: clamp(17px, 1.7vw, 24px); }
+.cast-window-list .badge { font-size: clamp(12px, 1vw, 15px); }
+.cast-window-list .meta-pill { font-size: clamp(12px, 1vw, 15px); }
+.cast-window-list .window-leader { font-size: clamp(13px, 1.1vw, 16px); }
+
+/* Bigger leaderboard rows */
+.cast-leaderboard { gap: 10px; }
+.cast-leaderboard li {
+  grid-template-columns: 44px 1fr auto;
+  gap: 14px; padding: 14px 18px; border-radius: 14px;
+}
+.cast-leaderboard .rank { font-size: clamp(18px, 1.8vw, 26px); }
+.cast-leaderboard .name { font-size: clamp(17px, 1.7vw, 24px); font-weight: 700; }
+.cast-leaderboard .pts { font-size: clamp(18px, 1.9vw, 28px); }
+.cast-leaderboard li:nth-child(1) { border-color: var(--gold, #e6b800); }

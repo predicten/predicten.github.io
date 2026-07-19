@@ -246,6 +246,8 @@ function initMatches() {
 
   el("new-match-btn").addEventListener("click", openNewMatchModal);
 
+  el("cast-btn").addEventListener("click", openCastView);
+
   el("delete-match-btn").addEventListener("click", openRemoveMatchesModal);
 
   el("copy-link-btn").addEventListener("click", copyPlayerLink);
@@ -268,6 +270,14 @@ function updateMatchShare() {
   }
   el("match-share-url").value = playerGameUrl(state.matchId);
   share.classList.remove("hidden");
+}
+
+function openCastView() {
+  if (!state.matchId) {
+    toast("Select a match to cast.");
+    return;
+  }
+  location.href = `cast.html?match=${encodeURIComponent(state.matchId)}`;
 }
 
 async function copyPlayerLink() {
