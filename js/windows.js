@@ -77,20 +77,20 @@ const FIXED15_CHECKPOINTS = [
 
 // Hydration-break scheme: one window per playing segment between breaks.
 const HYDRATION_WINDOWS = [
-  { order: 0, key: "start-b1", label: "Start – 1st break", period: PERIODS.FIRST_HALF, startMin: 0, endMin: null },
-  { order: 1, key: "b1-HT", label: "1st break – HT", period: PERIODS.FIRST_HALF, startMin: null, endMin: 45 },
-  { order: 2, key: "HT-b2", label: "HT – 2nd break", period: PERIODS.SECOND_HALF, startMin: 45, endMin: null },
-  { order: 3, key: "b2-FT", label: "2nd break – FT", period: PERIODS.SECOND_HALF, startMin: null, endMin: 90 },
+  { order: 0, key: "start-b1", label: "Start – 1st hydration break", period: PERIODS.FIRST_HALF, startMin: 0, endMin: null },
+  { order: 1, key: "b1-HT", label: "1st hydration break – Half Time", period: PERIODS.FIRST_HALF, startMin: null, endMin: 45 },
+  { order: 2, key: "HT-b2", label: "Half Time – 2nd hydration break", period: PERIODS.SECOND_HALF, startMin: 45, endMin: null },
+  { order: 3, key: "b2-FT", label: "2nd hydration break – Full Time", period: PERIODS.SECOND_HALF, startMin: null, endMin: 90 },
 ];
 
 const HYDRATION_CHECKPOINTS = [
   { key: "pre", label: "Pre-match", period: PERIODS.PRE, matchMinute: 0, completed: 0, active: -1 },
   { key: "ko", label: "Kickoff", period: PERIODS.FIRST_HALF, matchMinute: 0, completed: 0, active: 0 },
-  { key: "break1", label: "1st Hydration Break", period: PERIODS.FIRST_HALF, matchMinute: 30, completed: 1, active: 1 },
-  { key: "ht", label: "Half Time", period: PERIODS.HALFTIME, matchMinute: 45, completed: 2, active: -1 },
+  { key: "break1", label: "1st break", period: PERIODS.FIRST_HALF, matchMinute: 30, completed: 1, active: 1 },
+  { key: "ht", label: "HT", period: PERIODS.HALFTIME, matchMinute: 45, completed: 2, active: -1 },
   { key: "2h", label: "2nd half", period: PERIODS.SECOND_HALF, matchMinute: 45, completed: 2, active: 2 },
-  { key: "break2", label: "2nd Hydration Break", period: PERIODS.SECOND_HALF, matchMinute: 75, completed: 3, active: 3 },
-  { key: "ft", label: "Full Time", period: PERIODS.FULLTIME, matchMinute: 90, completed: 4, active: -1 },
+  { key: "break2", label: "2nd break", period: PERIODS.SECOND_HALF, matchMinute: 75, completed: 3, active: 3 },
+  { key: "ft", label: "FT", period: PERIODS.FULLTIME, matchMinute: 90, completed: 4, active: -1 },
 ];
 
 export const WINDOW_SCHEMES = {
