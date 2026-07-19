@@ -824,8 +824,52 @@ select, input[type="number"] {
 .cast-window-list .window-label { font-size: clamp(17px, 1.7vw, 24px); }
 .cast-window-list .badge { font-size: clamp(12px, 1vw, 15px); }
 .cast-window-list .meta-pill { font-size: clamp(12px, 1vw, 15px); }
-.cast-window-list .predictor-pill { font-size: clamp(12px, 1vw, 15px); padding: 4px 11px; }
+/* Highlighted predictor names on the cast board */
+.cast-window-list .predictor-pill {
+  font-size: clamp(13px, 1.1vw, 16px);
+  padding: 5px 13px;
+  font-weight: 700;
+  color: #eaf0ff;
+  border-color: rgba(79, 124, 255, 0.55);
+  background: linear-gradient(180deg, rgba(79, 124, 255, 0.32), rgba(79, 124, 255, 0.2));
+}
 .cast-window-list .window-leader { font-size: clamp(13px, 1.1vw, 16px); }
+
+/* Highlighted scoring rules banner at the top of the cast board */
+.cast-scoring {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px clamp(12px, 1.5vw, 20px);
+  justify-content: center;
+  margin: 0 0 22px;
+  padding: clamp(12px, 1.6vw, 18px) clamp(16px, 2vw, 24px);
+  border: 1px solid rgba(79, 124, 255, 0.5);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(79, 124, 255, 0.22), rgba(79, 124, 255, 0.08));
+  box-shadow: var(--shadow);
+}
+.cast-scoring:empty { display: none; }
+.cast-scoring .score-title {
+  font-size: clamp(15px, 1.5vw, 20px);
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #eaf0ff;
+}
+.cast-scoring .score-chips { display: flex; flex-wrap: wrap; gap: clamp(8px, 1vw, 14px); justify-content: center; }
+.cast-scoring .score-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(11, 16, 32, 0.4);
+  border: 1px solid rgba(147, 160, 189, 0.25);
+}
+.cast-scoring .score-chip b { font-size: clamp(13px, 1.2vw, 17px); color: #fff; font-weight: 700; }
+.cast-scoring .score-chip em { font-size: clamp(12px, 1.05vw, 15px); color: var(--muted); font-style: normal; }
+.cast-scoring .score-note { font-size: clamp(12px, 1vw, 15px); color: var(--muted); font-style: italic; }
 
 /* Bigger leaderboard rows */
 .cast-leaderboard { gap: 10px; }

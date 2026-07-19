@@ -19,6 +19,9 @@ import {
 } from "./service.js";
 import {
   PERIODS,
+  SCORING,
+  STAT_FIELDS,
+  STAT_LABELS,
   getCheckpointIndex,
   getScheme,
   getSchemeCheckpoints,
@@ -47,6 +50,7 @@ el("logout-btn").addEventListener("click", () => logout());
 el("denied-logout").addEventListener("click", () => logout());
 el("fullscreen-btn").addEventListener("click", toggleFullscreen);
 renderSignInEnvHint();
+renderScoringRules();
 
 watchAuth((user) => {
   state.user = user;
@@ -200,6 +204,22 @@ function renderWindows() {
         </li>`;
     })
     .join("");
+}
+
+function renderScoringRules() {
+  const container = el("scoring-rules");
+  if (!container) return;
+  const chips = STAT_FIELDS.map(
+    (f) => `
+      <span class="score-chip">
+        <b>${escapeHtml(STAT_LABELS[f])}</b>
+        <em>Exact ${SCORING[f].exact} · Close ${SCORING[f].close}</em>
+      </span>`
+  ).join("");
+  container.innerHTML = `
+    <span class="score-title">Scoring</span>
+    <div class="score-chips">${chips}</div>
+    <span class="score-note">Close = off by one</span>`;
 }
 
 function getPredictorNames(windowOrder) {
