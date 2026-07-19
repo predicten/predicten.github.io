@@ -86,11 +86,11 @@ const HYDRATION_WINDOWS = [
 const HYDRATION_CHECKPOINTS = [
   { key: "pre", label: "Pre-match", period: PERIODS.PRE, matchMinute: 0, completed: 0, active: -1 },
   { key: "ko", label: "Kickoff", period: PERIODS.FIRST_HALF, matchMinute: 0, completed: 0, active: 0 },
-  { key: "break1", label: "1st break", period: PERIODS.FIRST_HALF, matchMinute: 30, completed: 1, active: 1 },
-  { key: "ht", label: "HT", period: PERIODS.HALFTIME, matchMinute: 45, completed: 2, active: -1 },
+  { key: "break1", label: "1st Hydration Break", period: PERIODS.FIRST_HALF, matchMinute: 30, completed: 1, active: 1 },
+  { key: "ht", label: "Half Time", period: PERIODS.HALFTIME, matchMinute: 45, completed: 2, active: -1 },
   { key: "2h", label: "2nd half", period: PERIODS.SECOND_HALF, matchMinute: 45, completed: 2, active: 2 },
-  { key: "break2", label: "2nd break", period: PERIODS.SECOND_HALF, matchMinute: 75, completed: 3, active: 3 },
-  { key: "ft", label: "FT", period: PERIODS.FULLTIME, matchMinute: 90, completed: 4, active: -1 },
+  { key: "break2", label: "2nd Hydration Break", period: PERIODS.SECOND_HALF, matchMinute: 75, completed: 3, active: 3 },
+  { key: "ft", label: "Full Time", period: PERIODS.FULLTIME, matchMinute: 90, completed: 4, active: -1 },
 ];
 
 export const WINDOW_SCHEMES = {
