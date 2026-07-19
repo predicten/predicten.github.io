@@ -97,6 +97,7 @@ export const WINDOW_SCHEMES = {
   fixed15: {
     id: "fixed15",
     label: "Fixed 15-minute windows",
+    shortLabel: "15 min",
     description: "Six 15-minute windows across the match.",
     windows: FIXED15_WINDOWS,
     checkpoints: FIXED15_CHECKPOINTS,
@@ -104,6 +105,7 @@ export const WINDOW_SCHEMES = {
   hydration: {
     id: "hydration",
     label: "Hydration-break windows",
+    shortLabel: "Hydration Break",
     description: "Four windows split by the two in-play hydration breaks.",
     windows: HYDRATION_WINDOWS,
     checkpoints: HYDRATION_CHECKPOINTS,

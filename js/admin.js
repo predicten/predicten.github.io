@@ -322,17 +322,23 @@ function openNewMatchModal() {
         <span>City</span>
         <input name="city" type="text" placeholder="City" />
       </label>
-      <label class="field">
-        <span>Prediction windows</span>
-        <select name="windowScheme">
+      <fieldset class="field scheme-field">
+        <span>Window scheme</span>
+        <div class="scheme-options" role="radiogroup" aria-label="Window scheme">
           ${Object.values(WINDOW_SCHEMES)
             .map(
-              (s) =>
-                `<option value="${esc(s.id)}" ${s.id === DEFAULT_WINDOW_SCHEME ? "selected" : ""}>${esc(s.label)} — ${esc(s.description)}</option>`
+              (s) => `
+            <label class="scheme-option">
+              <input type="radio" name="windowScheme" value="${esc(s.id)}" ${s.id === DEFAULT_WINDOW_SCHEME ? "checked" : ""} />
+              <span class="scheme-option-body">
+                <strong>${esc(s.shortLabel)}</strong>
+                <small>${esc(s.description)}</small>
+              </span>
+            </label>`
             )
             .join("")}
-        </select>
-      </label>
+        </div>
+      </fieldset>
       <div class="modal-actions">
         <button type="submit" class="btn btn-primary">Create match</button>
       </div>

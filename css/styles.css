@@ -549,6 +549,34 @@ select, input[type="number"] {
 .field input, .field select { width: 100%; }
 .stats-form .btn { grid-column: 1 / -1; }
 
+/* Window scheme picker (new match modal) */
+.scheme-field { border: 0; margin: 0; padding: 0; min-width: 0; }
+.new-match-form .scheme-field { grid-column: 1 / -1; }
+.scheme-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.scheme-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel-2);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.scheme-option:hover { border-color: var(--primary); }
+.scheme-option input { flex: 0 0 auto; width: auto; margin-top: 2px; accent-color: var(--primary); }
+.scheme-option-body { display: flex; flex-direction: column; gap: 2px; }
+.scheme-option-body strong { color: var(--text); font-size: 14px; }
+.scheme-option-body small { color: var(--muted); font-size: 12px; line-height: 1.35; }
+.scheme-option:has(input:checked) {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 14%, var(--panel-2));
+}
+@media (max-width: 560px) {
+  .scheme-options { grid-template-columns: 1fr; }
+}
+
 /* Window list (player) */
 .window-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
 .window-row {
