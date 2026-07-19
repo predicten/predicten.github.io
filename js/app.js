@@ -6,6 +6,7 @@ import {
   loginWithGoogle,
   logout,
   renderSignInEnvHint,
+  watchAdmins,
   watchAuth,
 } from "./auth.js";
 import {
@@ -56,25 +57,46 @@ renderSignInEnvHint();
 initAutoHideHeader();
 initMobilePanelTabs();
 
+let adminUnsub = null;
+
 watchAuth((user) => {
   state.user = user;
   if (user) {
     el("login-view").classList.add("hidden");
     el("app-view").classList.remove("hidden");
     el("logout-btn").classList.remove("hidden");
-    const chip = el("user-chip");
-    chip.textContent = (user.displayName || user.email) + (isAdmin(user) ? " (admin)" : "");
-    chip.classList.remove("hidden");
+    refreshAdminUI();
+    // Watch the admin list so subgroup admins (stored in Firestore, not code)
+    // are also recognized once it loads.
+    if (adminUnsub) adminUnsub();
+    adminUnsub = watchAdmins(refreshAdminUI);
     initMatch();
   } else {
+    if (adminUnsub) {
+      adminUnsub();
+      adminUnsub = null;
+    }
     teardown();
     el("login-view").classList.remove("hidden");
     el("app-view").classList.add("hidden");
     el("logout-btn").classList.add("hidden");
     el("user-chip").classList.add("hidden");
+    el("admin-link").classList.add("hidden");
     el("share-btn").classList.add("hidden");
   }
 });
+
+// Reflect the signed-in user's admin status in the top bar: label the chip and
+// only reveal the Admin link for actual admins.
+function refreshAdminUI() {
+  const user = state.user;
+  if (!user) return;
+  const admin = isAdmin(user);
+  const chip = el("user-chip");
+  chip.textContent = (user.displayName || user.email) + (admin ? " (admin)" : "");
+  chip.classList.remove("hidden");
+  el("admin-link").classList.toggle("hidden", !admin);
+}
 
 // ---------------------------------------------------------------------------
 // Shareable game link
