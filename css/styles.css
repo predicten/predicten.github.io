@@ -767,6 +767,9 @@ select, input[type="number"] {
 .windows-table th, .windows-table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); }
 .windows-table th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px; }
 .windows-table .w-label, .windows-table .pts { font-weight: 700; }
+.windows-table .w-predictions { min-width: 160px; }
+.windows-table .w-predictions-count { font-weight: 700; }
+.windows-table .w-predictions .predictor-pills { margin-top: 6px; }
 
 /* Modal */
 .modal { position: fixed; inset: 0; background: rgba(5, 8, 18, 0.6); display: grid; place-items: center; padding: 20px; z-index: 50; }

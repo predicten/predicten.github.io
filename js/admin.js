@@ -474,15 +474,20 @@ function selectMatch(matchId) {
   });
 }
 
-// Distinct predictors for a window, derived from actual prediction docs (the
-// window's predictionsCount field is admin-writable only, so it under-counts
-// player predictions — see submitPredictionForFixedWindow).
-function predictorCount(order) {
+// Distinct predictor display names for a window, derived from actual prediction
+// docs (the window's predictionsCount field is admin-writable only, so it
+// under-counts player predictions — see submitPredictionForFixedWindow). The
+// count shown in the table is always this list's length so the number and the
+// names it stands for can never drift apart.
+function predictorNames(order) {
   const seen = new Set();
+  const names = [];
   state.predictions.forEach((p) => {
-    if (p.windowOrder === order) seen.add(p.userId);
+    if (p.windowOrder !== order || seen.has(p.userId)) return;
+    seen.add(p.userId);
+    names.push(p.displayName || "Player");
   });
-  return seen.size;
+  return names;
 }
 
 // ---------------------------------------------------------------------------
@@ -559,11 +564,17 @@ function renderWindows() {
   tbody.innerHTML = state.windows
     .map((w) => {
       const status = getWindowStatus(w, state.match);
+      const predictors = predictorNames(w.order);
+      const pills = predictors.length
+        ? `<div class="predictor-pills">${predictors
+            .map((name) => `<span class="predictor-pill">${esc(name)}</span>`)
+            .join("")}</div>`
+        : "";
       return `
         <tr>
           <td class="w-label">${esc(w.label)}</td>
           <td><span class="badge badge-${status}">${status}</span></td>
-          <td>${predictorCount(w.order)}</td>
+          <td class="w-predictions"><span class="w-predictions-count">${predictors.length}</span>${pills}</td>
           <td>${actionButtons(w, status)}</td>
         </tr>`;
     })
