@@ -1,4 +1,4 @@
-# Match Predictor — Fixed Window Game
+# Match Predictor — Predict and Win
 
 A live football prediction game built with **vanilla JavaScript + HTML + CSS + Firebase**
 (Firestore + Google Auth). Players sign in with Google, join a live match, and predict
