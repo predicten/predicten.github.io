@@ -22,6 +22,7 @@ import {
   updateMatchClock,
   watchMatch,
   watchMatches,
+  watchPredictions,
   watchWindows,
 } from "./service.js";
 import {
@@ -42,10 +43,11 @@ const state = {
   match: null,
   matches: [],
   windows: [],
+  predictions: [],
   admins: [],
   adminsLoaded: false,
   initialized: false,
-  unsub: { match: null, windows: null, admins: null },
+  unsub: { match: null, windows: null, preds: null, admins: null },
 };
 
 // The match-clock checkpoints depend on the selected match's window scheme.
@@ -466,6 +468,21 @@ function selectMatch(matchId) {
     state.windows = windows;
     renderWindows();
   });
+  state.unsub.preds = watchPredictions(matchId, (predictions) => {
+    state.predictions = predictions;
+    renderWindows();
+  });
+}
+
+// Distinct predictors for a window, derived from actual prediction docs (the
+// window's predictionsCount field is admin-writable only, so it under-counts
+// player predictions — see submitPredictionForFixedWindow).
+function predictorCount(order) {
+  const seen = new Set();
+  state.predictions.forEach((p) => {
+    if (p.windowOrder === order) seen.add(p.userId);
+  });
+  return seen.size;
 }
 
 // ---------------------------------------------------------------------------
@@ -546,7 +563,7 @@ function renderWindows() {
         <tr>
           <td class="w-label">${esc(w.label)}</td>
           <td><span class="badge badge-${status}">${status}</span></td>
-          <td>${w.predictionsCount || 0}</td>
+          <td>${predictorCount(w.order)}</td>
           <td>${actionButtons(w, status)}</td>
         </tr>`;
     })

@@ -187,9 +187,10 @@ export async function submitPredictionForFixedWindow(user, matchId, windowId, pr
     { merge: true }
   );
 
-  if (!existing.exists()) {
-    await updateDoc(windowRef(matchId, order), { predictionsCount: increment(1) });
-  }
+  // NOTE: we intentionally do NOT maintain a denormalized predictionsCount on
+  // the window doc here — window docs are admin-writable only (see
+  // firestore.rules), so a player's increment would fail. The UI derives the
+  // count from the actual prediction docs instead, which always stays accurate.
   return ref.id;
 }
 

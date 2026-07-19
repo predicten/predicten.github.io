@@ -196,7 +196,7 @@ function renderWindows() {
               <span class="badge badge-${status}">${status}</span>
             </div>
             <div class="window-meta">
-              <span class="meta-pill">${w.predictionsCount || 0} predictions</span>
+              <span class="meta-pill">${predictors.length} predictions</span>
             </div>
             ${predictorPills}
             ${leader ? `<div class="window-leader"><span>Window Leader</span><strong>${escapeHtml(leader.displayName)}</strong><em>${leader.points} pts</em></div>` : ""}

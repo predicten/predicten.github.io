@@ -347,7 +347,7 @@ function renderWindows() {
             </div>
             <div class="window-meta">
               ${isNext ? `<span class="meta-pill next-pill">Predict now</span>` : ""}
-              <span class="meta-pill">${w.predictionsCount || 0} predictions</span>
+              <span class="meta-pill">${predictors.length} predictions</span>
               ${mine ? `<span class="meta-pill mine">${mine.scored ? `You earned ${mine.points} pts` : "Your pick is in"}</span>` : ""}
               ${open ? `<span class="open-tag" title="Editable" aria-label="Editable">✎</span>` : ""}
             </div>
