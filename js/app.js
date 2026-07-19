@@ -426,7 +426,9 @@ function renderPredictArea() {
   }
   area.innerHTML = `
     <p class="predict-target">
-      Predict upcoming windows — each closes the moment it kicks off. The highlighted window is next up.
+      Predict only what happens <strong>during each window</strong> — the count within
+      that time span, <strong>not</strong> the running total from kickoff. Each window
+      closes the moment it kicks off; the highlighted one is next up.
     </p>
     <div class="prediction-stack">
       ${state.windows.map(renderPredictionForm).join("")}
@@ -497,6 +499,7 @@ function renderPredictionForm(window) {
         ${isNext ? `<span class="next-flag">Closing next — predict now</span>` : ""}
         ${existing ? `<span class="muted">submitted</span>` : ""}
       </div>
+      <p class="window-scope-note">Enter only what happens <strong>during ${escapeHtml(window.label)}</strong> — not the match total.</p>
       <div class="stat-steppers">${fields}</div>
       <button type="submit" class="btn btn-primary">
         ${existing ? "Update prediction" : "Submit prediction"}
