@@ -23,10 +23,12 @@ import {
   watchWindows,
 } from "./service.js";
 import {
-  PERIODS,
+  DEFAULT_WINDOW_SCHEME,
   STAT_FIELDS,
   STAT_LABELS,
-  WINDOW_COUNT,
+  WINDOW_SCHEMES,
+  getCheckpointIndex,
+  getSchemeCheckpoints,
   getWindowStatus,
 } from "./windows.js";
 
@@ -44,17 +46,10 @@ const state = {
   unsub: { match: null, windows: null, admins: null },
 };
 
-const CLOCK_STATES = [
-  { label: "Pre-match", period: PERIODS.PRE, matchMinute: 0 },
-  { label: "0:00", period: PERIODS.FIRST_HALF, matchMinute: 0 },
-  { label: "15:00", period: PERIODS.FIRST_HALF, matchMinute: 15 },
-  { label: "30:00", period: PERIODS.FIRST_HALF, matchMinute: 30 },
-  { label: "HT", period: PERIODS.HALFTIME, matchMinute: 45 },
-  { label: "45:00", period: PERIODS.SECOND_HALF, matchMinute: 45 },
-  { label: "60:00", period: PERIODS.SECOND_HALF, matchMinute: 60 },
-  { label: "75:00", period: PERIODS.SECOND_HALF, matchMinute: 75 },
-  { label: "FT", period: PERIODS.FULLTIME, matchMinute: 90 },
-];
+// The match-clock checkpoints depend on the selected match's window scheme.
+function clockStates() {
+  return getSchemeCheckpoints(state.match);
+}
 
 // ---------------------------------------------------------------------------
 // Auth
@@ -327,6 +322,17 @@ function openNewMatchModal() {
         <span>City</span>
         <input name="city" type="text" placeholder="City" />
       </label>
+      <label class="field">
+        <span>Prediction windows</span>
+        <select name="windowScheme">
+          ${Object.values(WINDOW_SCHEMES)
+            .map(
+              (s) =>
+                `<option value="${esc(s.id)}" ${s.id === DEFAULT_WINDOW_SCHEME ? "selected" : ""}>${esc(s.label)} — ${esc(s.description)}</option>`
+            )
+            .join("")}
+        </select>
+      </label>
       <div class="modal-actions">
         <button type="submit" class="btn btn-primary">Create match</button>
       </div>
@@ -340,8 +346,9 @@ function openNewMatchModal() {
     try {
       const id = await createMatch(payload, state.user);
       state.matchId = id;
+      const scheme = WINDOW_SCHEMES[payload.windowScheme] || WINDOW_SCHEMES[DEFAULT_WINDOW_SCHEME];
       closeModal();
-      toast(`Match created with ${WINDOW_COUNT} fixed windows.`);
+      toast(`Match created with ${scheme.windows.length} ${scheme.id === "hydration" ? "hydration-break" : "fixed"} windows.`);
     } catch (e2) {
       toast(err(e2));
     }
@@ -447,25 +454,29 @@ function selectMatch(matchId) {
 // ---------------------------------------------------------------------------
 function renderClock() {
   if (!state.match) return;
-  const index = clockStateIndexForMatch(state.match);
+  const index = getCheckpointIndex(state.match);
   renderClockChips(index);
-  el("match-clock").textContent = `${state.match.period} ${state.match.matchMinute ?? 0}'`;
+  const label = clockStates()[index]?.label ?? state.match.period;
+  el("match-clock").textContent = label;
 }
 
 function renderClockChips(activeIndex) {
   const container = el("clock-chips");
   if (!container) return;
-  container.innerHTML = CLOCK_STATES.map(
-    (clock, i) =>
-      `<button type="button" class="clock-chip${i === activeIndex ? " active" : ""}" data-index="${i}" aria-pressed="${i === activeIndex}">${esc(clock.label)}</button>`
-  ).join("");
+  const states = clockStates();
+  container.innerHTML = states
+    .map(
+      (clock, i) =>
+        `<button type="button" class="clock-chip${i === activeIndex ? " active" : ""}" data-index="${i}" aria-pressed="${i === activeIndex}">${esc(clock.label)}</button>`
+    )
+    .join("");
 
   container.querySelectorAll(".clock-chip").forEach((btn) => {
     btn.addEventListener("click", () => saveClockIndex(Number(btn.dataset.index)));
   });
 
   el("clock-back").disabled = activeIndex <= 0;
-  el("clock-advance").disabled = activeIndex >= CLOCK_STATES.length - 1;
+  el("clock-advance").disabled = activeIndex >= states.length - 1;
 }
 
 function stepClock(delta) {
@@ -473,8 +484,9 @@ function stepClock(delta) {
     toast("Select a match first.");
     return;
   }
-  const current = clockStateIndexForMatch(state.match);
-  const next = Math.min(CLOCK_STATES.length - 1, Math.max(0, current + delta));
+  const states = clockStates();
+  const current = getCheckpointIndex(state.match);
+  const next = Math.min(states.length - 1, Math.max(0, current + delta));
   if (next === current) return;
   saveClockIndex(next);
 }
@@ -484,39 +496,19 @@ async function saveClockIndex(index) {
     toast("Select a match first.");
     return;
   }
-  const clock = CLOCK_STATES[index] || CLOCK_STATES[0];
+  const states = clockStates();
+  const clock = states[index] || states[0];
   renderClockChips(index);
   try {
     await updateMatchClock(state.matchId, {
       period: clock.period,
       matchMinute: clock.matchMinute,
+      phaseIndex: index,
     });
     toast(`Clock set to ${clock.label}.`);
   } catch (e) {
     toast(err(e));
   }
-}
-
-function clockStateIndexForMatch(match) {
-  if (!match) return 0;
-  if (match.period === PERIODS.PRE) return 0;
-  if (match.period === PERIODS.HALFTIME) return 4;
-  if (match.period === PERIODS.FULLTIME) return 8;
-
-  const minute = Number(match.matchMinute) || 0;
-  if (match.period === PERIODS.FIRST_HALF) {
-    if (minute < 15) return 1;
-    if (minute < 30) return 2;
-    return 3;
-  }
-
-  if (match.period === PERIODS.SECOND_HALF) {
-    if (minute < 60) return 5;
-    if (minute < 75) return 6;
-    return 7;
-  }
-
-  return 0;
 }
 
 // ---------------------------------------------------------------------------
@@ -748,8 +740,8 @@ function clampStat(v) {
 }
 
 // ---------------------------------------------------------------------------
-// ESPN auto-fill: scrape a match's summary feed and bucket timestamped events
-// into the fixed 15-minute window being settled. Pre-fills for admin review.
+// ESPN auto-fill: pull cumulative match totals and subtract earlier settled
+// windows so the window being settled gets the difference. Pre-fills for review.
 // ---------------------------------------------------------------------------
 let lastEspnGameId = "";
 

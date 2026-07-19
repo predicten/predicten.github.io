@@ -2,8 +2,8 @@
 // pure logic in windows.js.
 //
 // Data model:
-//   matches/{matchId}                         -> match + live clock (period, matchMinute)
-//   matches/{matchId}/windows/{order}         -> one doc per fixed window (order "0".."5")
+//   matches/{matchId}                         -> match + live clock (period, matchMinute, phaseIndex) + windowScheme
+//   matches/{matchId}/windows/{order}         -> one doc per fixed window (order "0"..)
 //   matches/{matchId}/predictions/{uid_order} -> one prediction per user per window
 //   matches/{matchId}/standings/{uid}         -> running total points per player
 //   users/{uid}                               -> profile
@@ -24,9 +24,10 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "./firebase.js";
 import {
-  FIXED_WINDOW_SCHEDULE,
+  DEFAULT_WINDOW_SCHEME,
   PERIODS,
   STAT_FIELDS,
+  WINDOW_SCHEMES,
   getWindowStatus,
   scorePrediction,
 } from "./windows.js";
@@ -65,7 +66,9 @@ export async function createMatch({
   group,
   venue,
   city,
+  windowScheme,
 }, adminUser) {
+  const schemeId = WINDOW_SCHEMES[windowScheme] ? windowScheme : DEFAULT_WINDOW_SCHEME;
   const ref = doc(collection(db, "matches"));
   await setDoc(ref, {
     name: name || `${homeTeam} vs ${awayTeam}`,
@@ -79,14 +82,16 @@ export async function createMatch({
     group: group || null,
     venue: venue || null,
     city: city || null,
+    windowScheme: schemeId,
     period: PERIODS.PRE,
     matchMinute: 0,
+    phaseIndex: 0,
     createdAt: serverTimestamp(),
     createdBy: adminUser ? adminUser.uid : null,
     createdByName: adminUser ? (adminUser.displayName || adminUser.email || null) : null,
     createdByEmail: adminUser ? (adminUser.email || "").toLowerCase() : null,
   });
-  await createFixedPredictionWindowsForMatch(ref.id);
+  await createFixedPredictionWindowsForMatch(ref.id, schemeId);
   return ref.id;
 }
 
@@ -109,9 +114,10 @@ export async function deleteMatch(matchId, adminUser) {
 }
 
 // Create the fixed match windows for a match. Identical for every player.
-export async function createFixedPredictionWindowsForMatch(matchId) {
+export async function createFixedPredictionWindowsForMatch(matchId, schemeId = DEFAULT_WINDOW_SCHEME) {
+  const scheme = WINDOW_SCHEMES[schemeId] || WINDOW_SCHEMES[DEFAULT_WINDOW_SCHEME];
   const batch = writeBatch(db);
-  for (const w of FIXED_WINDOW_SCHEDULE) {
+  for (const w of scheme.windows) {
     batch.set(
       windowRef(matchId, w.order),
       {
@@ -119,8 +125,8 @@ export async function createFixedPredictionWindowsForMatch(matchId) {
         key: w.key,
         label: w.label,
         period: w.period,
-        startMin: w.startMin,
-        endMin: w.endMin,
+        startMin: w.startMin ?? null,
+        endMin: w.endMin ?? null,
         predictionsCount: 0,
         statsEntered: false,
         actualStats: null,
@@ -131,14 +137,15 @@ export async function createFixedPredictionWindowsForMatch(matchId) {
     );
   }
   await batch.commit();
-  return FIXED_WINDOW_SCHEDULE.length;
+  return scheme.windows.length;
 }
 
 // Admin clock control (no live feed in the MVP — admin advances the match).
-export function updateMatchClock(matchId, { period, matchMinute }) {
+export function updateMatchClock(matchId, { period, matchMinute, phaseIndex }) {
   const patch = { updatedAt: serverTimestamp() };
   if (period !== undefined) patch.period = period;
   if (matchMinute !== undefined) patch.matchMinute = Math.max(0, Math.round(Number(matchMinute) || 0));
+  if (phaseIndex !== undefined) patch.phaseIndex = Math.max(0, Math.round(Number(phaseIndex) || 0));
   return updateDoc(matchRef(matchId), patch);
 }
 

@@ -2,13 +2,19 @@
 
 A live football prediction game built with **vanilla JavaScript + HTML + CSS + Firebase**
 (Firestore + Google Auth). Players sign in with Google, join a live match, and predict
-what happens in any unsettled **fixed 15-minute match window**. An admin enters the actual
-stats after each window completes; scoring and the leaderboard update in realtime.
+what happens in any unsettled **match window**. An admin enters the actual stats after
+each window completes; scoring and the leaderboard update in realtime.
 
-> The game uses **fixed match-time windows that are identical for every player** — it does
+> The game uses **fixed match windows that are identical for every player** — it does
 > NOT use rolling windows based on when a user joins.
 
-## Fixed window schedule
+## Window schemes
+
+Each match uses one **window scheme**, chosen by the admin when the match is created.
+
+### Fixed 15-minute windows (default)
+
+Six windows driven by the match minute.
 
 | # | Window | Notes |
 |---|--------|-------|
@@ -19,7 +25,21 @@ stats after each window completes; scoring and the leaderboard update in realtim
 | 4 | 60:00–75:00 | |
 | 5 | 75:00–FT | includes second-half stoppage time |
 
-**Prediction rule:** a user can submit or update a prediction for any fixed window that
+### Hydration-break windows
+
+Four windows split by the two in-play hydration/drinks breaks. Because those breaks
+happen at referee-decided minutes rather than fixed clock times, this scheme progresses
+by admin-triggered phase checkpoints (Kickoff → 1st break → HT → 2nd half → 2nd break →
+FT) instead of the match minute.
+
+| # | Window | Notes |
+|---|--------|-------|
+| 0 | Start – 1st break | |
+| 1 | 1st break – HT | includes first-half stoppage time |
+| 2 | HT – 2nd break | |
+| 3 | 2nd break – FT | includes second-half stoppage time |
+
+**Prediction rule:** a user can submit or update a prediction for any window that
 has not been settled yet. Once the admin enters stats and scoring is calculated, that
 window becomes `settled` and player predictions for it are locked.
 
@@ -34,7 +54,7 @@ css/styles.css    Styles
 js/config.js      <-- Firebase config + ADMIN_EMAILS (fill this in)
 js/firebase.js    Firebase init
 js/auth.js        Google sign-in / admin check
-js/windows.js     Pure fixed-window logic + scoring (no Firebase)
+js/windows.js     Pure window-scheme logic + scoring (no Firebase)
 js/service.js     Firestore data layer + core game functions
 js/app.js         Player UI
 js/admin.js       Admin UI
@@ -43,9 +63,10 @@ firestore.rules   Security rules
 
 ## Core functions (in `js/windows.js` + `js/service.js`)
 
-- `createFixedPredictionWindowsForMatch(matchId)`
-- `getCurrentFixedWindow(matchMinute, period)`
-- `getNextFixedPredictionWindow(matchMinute, period)`
+- `createFixedPredictionWindowsForMatch(matchId, schemeId)`
+- `getScheme(match)` / `getSchemeWindows(match)` / `getWindowCount(match)`
+- `getCurrentWindow(match)`
+- `getNextPredictionWindow(match)`
 - `getWindowStatus(window, match)`
 - `submitPredictionForFixedWindow(user, matchId, windowId, predictionPayload)`
 - `submitManualStatsForFixedWindow(matchId, windowId, statsPayload, adminUser)`
@@ -80,9 +101,11 @@ Then open `http://localhost:8000/` (player) and `http://localhost:8000/admin.htm
 
 ## Using it
 
-1. In the **admin console**, click **+ New match** (creates the 6 fixed windows).
-2. Use the **Match clock** slider to move the match to the latest fixed checkpoint
-   (no live feed in the MVP).
+1. In the **admin console**, click **+ New match**, pick a **window scheme** (fixed
+   15-minute or hydration-break), and the matching windows are created.
+2. Use the **Match clock** checkpoints (Back / Advance) to move the match forward as it
+   plays — the checkpoints match the scheme (minute marks for fixed, or Kickoff / drinks
+   breaks / HT / FT for hydration). No live feed in the MVP.
 3. Players sign in on the **player page**, pick the match, and submit or update predictions
    for any unsettled window.
 4. When a window is `completed`, the admin clicks **Enter stats**, fills in

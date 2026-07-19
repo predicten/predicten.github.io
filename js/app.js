@@ -14,7 +14,10 @@ import {
   SCORING,
   STAT_FIELDS,
   STAT_LABELS,
-  getNextFixedPredictionWindow,
+  getCheckpointIndex,
+  getNextPredictionWindow,
+  getScheme,
+  getSchemeCheckpoints,
   getWindowStatus,
 } from "./windows.js";
 
@@ -270,6 +273,12 @@ function renderClock() {
   if (!state.match) return;
   const m = state.match;
   el("match-name").textContent = m.name || "";
+  // Hydration matches progress by phase, not the clock, so show the phase label.
+  if (getScheme(m).id === "hydration") {
+    const cp = getSchemeCheckpoints(m)[getCheckpointIndex(m)];
+    el("match-clock").textContent = cp ? cp.label : (PERIOD_LABEL[m.period] || m.period);
+    return;
+  }
   const minute =
     m.period === PERIODS.FIRST_HALF || m.period === PERIODS.SECOND_HALF
       ? `${m.matchMinute}'`
@@ -334,7 +343,7 @@ function renderWindows() {
 
 function nextPredictableOrder() {
   if (!state.match) return null;
-  const next = getNextFixedPredictionWindow(state.match.matchMinute ?? 0, state.match.period ?? PERIODS.PRE);
+  const next = getNextPredictionWindow(state.match);
   return next ? next.order : null;
 }
 
